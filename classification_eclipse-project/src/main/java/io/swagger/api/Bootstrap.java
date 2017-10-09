@@ -7,6 +7,10 @@ import io.swagger.models.auth.*;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.ServletContext;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
@@ -23,9 +27,8 @@ public class Bootstrap extends HttpServlet {
         .name("")
         .url("http://unlicense.org"));
 
-    ServletContext context = config.getServletContext();
     Swagger swagger = new Swagger().info(info);
-    swagger.basePath("/v1");
+    swagger.setSchemes( new ArrayList<Scheme>(Arrays.asList(Scheme.HTTP)) );
 
     new SwaggerContextService().withServletConfig(config).updateSwagger(swagger);
   }
