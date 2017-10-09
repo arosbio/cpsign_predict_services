@@ -49,15 +49,23 @@
 		<load-on-startup>2</load-on-startup>
 	</servlet>
 
+	<!-- 
 	<servlet>
 		<servlet-name>SwaggerUIServlet</servlet-name>
 		<servlet-class>org.eclipse.jetty.servlet.DefaultServlet</servlet-class>
 	</servlet>
+	 -->
+	
+	<welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
 
+	<!-- 
     <servlet-mapping>
 		<servlet-name>SwaggerUIServlet</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
+	 -->
 
 	<servlet-mapping>
 		<servlet-name>SwaggerServlet</servlet-name>
