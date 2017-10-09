@@ -25,6 +25,7 @@ public class Bootstrap extends HttpServlet {
 
     ServletContext context = config.getServletContext();
     Swagger swagger = new Swagger().info(info);
+    swagger.basePath("/v1");
 
     new SwaggerContextService().withServletConfig(config).updateSwagger(swagger);
   }
