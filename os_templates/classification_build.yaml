@@ -10,7 +10,6 @@ objects:
     kind: ImageStream
     metadata:
         name: cpsign-classification
-        namespace: cpsign-predictserver
     labels:
         app: cpsign-classification
 
