@@ -25,7 +25,7 @@ public class Bootstrap extends HttpServlet {
         .email("info@genettasoft.com"))
       .license(new License()
         .name("")
-        .url("http://unlicense.org"));
+        .url(""));
 
     Swagger swagger = new Swagger().info(info);
     swagger.setSchemes( new ArrayList<Scheme>(Arrays.asList(Scheme.HTTP)) );

@@ -5,21 +5,19 @@ metadata:
     annotations: 
         description: "Build the classification image"
         tags: "cpsign, classification"
+labels:
+    app: cpsign-classification
 objects:
   - apiVersion: v1
     kind: ImageStream
     metadata:
         name: cpsign-classification
-    labels:
-        app: cpsign-classification
 
   - apiVersion: v1
     kind: BuildConfig
     metadata:
         name: cpsign-classification
-        namespace: cpsign-predictserver
-        labels:
-            app: cpsign-classification
+
     spec:
         runPolicy: Serial
         source:
@@ -41,6 +39,8 @@ objects:
             to:
                 kind: ImageStreamTag
                 name: 'cpsign-classification:latest'
+        triggers:
+          - type: ConfigChange
 parameters:
   - name: GIT_SOURCESECRET
     description: Secret containing a private key to be used to access git repo
