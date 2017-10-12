@@ -37,7 +37,13 @@ public class BadRequestError   {
   @JsonProperty("fields")
   private List<String> fields = new ArrayList<String>();
 
-  public BadRequestError code(Integer code) {
+  public BadRequestError(int code, String message, List<String> fields) {
+	  this.code = code;
+	  this.message = message;
+	  this.fields = fields;
+  }
+
+public BadRequestError code(Integer code) {
     this.code = code;
     return this;
   }

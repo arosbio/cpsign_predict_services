@@ -32,7 +32,12 @@ public class Error   {
   @JsonProperty("message")
   private String message = null;
 
-  public Error code(Integer code) {
+  public Error(int code, String message) {
+      this.code = code;
+      this.message = message;
+  }
+
+public Error code(Integer code) {
     this.code = code;
     return this;
   }

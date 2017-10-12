@@ -28,99 +28,104 @@ import javax.validation.constraints.*;
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public class Classification   {
-  @JsonProperty("smiles")
-  private String smiles = null;
+	@JsonProperty("smiles")
+	private String smiles = null;
 
-  @JsonProperty("prediction")
-  private List<PValueMapping> prediction = null;
+	@JsonProperty("prediction")
+	private List<PValueMapping> prediction = null;
 
-  public Classification smiles(String smiles) {
-    this.smiles = smiles;
-    return this;
-  }
+	public Classification(List<PValueMapping> pvalues, String smiles) {
+		this.smiles = smiles;
+		this.prediction = pvalues;
+	}
 
-  /**
-   * SMILES string for the molecule used in the prediction
-   * @return smiles
-   **/
-  @JsonProperty("smiles")
-  @ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction")
-  @NotNull
-  public String getSmiles() {
-    return smiles;
-  }
+	public Classification smiles(String smiles) {
+		this.smiles = smiles;
+		return this;
+	}
 
-  public void setSmiles(String smiles) {
-    this.smiles = smiles;
-  }
+	/**
+	 * SMILES string for the molecule used in the prediction
+	 * @return smiles
+	 **/
+	@JsonProperty("smiles")
+	@ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction")
+	@NotNull
+	public String getSmiles() {
+		return smiles;
+	}
 
-  public Classification prediction(List<PValueMapping> prediction) {
-    this.prediction = prediction;
-    return this;
-  }
+	public void setSmiles(String smiles) {
+		this.smiles = smiles;
+	}
 
-  public Classification addPredictionItem(PValueMapping predictionItem) {
-    if (this.prediction == null) {
-      this.prediction = new ArrayList<PValueMapping>();
-    }
-    this.prediction.add(predictionItem);
-    return this;
-  }
+	public Classification prediction(List<PValueMapping> prediction) {
+		this.prediction = prediction;
+		return this;
+	}
 
-  /**
-   * Predicted p-values for each label
-   * @return prediction
-   **/
-  @JsonProperty("prediction")
-  @ApiModelProperty(value = "Predicted p-values for each label")
-  public List<PValueMapping> getPrediction() {
-    return prediction;
-  }
+	public Classification addPredictionItem(PValueMapping predictionItem) {
+		if (this.prediction == null) {
+			this.prediction = new ArrayList<PValueMapping>();
+		}
+		this.prediction.add(predictionItem);
+		return this;
+	}
 
-  public void setPrediction(List<PValueMapping> prediction) {
-    this.prediction = prediction;
-  }
+	/**
+	 * Predicted p-values for each label
+	 * @return prediction
+	 **/
+	@JsonProperty("prediction")
+	@ApiModelProperty(value = "Predicted p-values for each label")
+	public List<PValueMapping> getPrediction() {
+		return prediction;
+	}
 
-
-  @Override
-  public boolean equals(java.lang.Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    Classification classification = (Classification) o;
-    return Objects.equals(this.smiles, classification.smiles) &&
-        Objects.equals(this.prediction, classification.prediction);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(smiles, prediction);
-  }
+	public void setPrediction(List<PValueMapping> prediction) {
+		this.prediction = prediction;
+	}
 
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class Classification {\n");
-    
-    sb.append("    smiles: ").append(toIndentedString(smiles)).append("\n");
-    sb.append("    prediction: ").append(toIndentedString(prediction)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
+	@Override
+	public boolean equals(java.lang.Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Classification classification = (Classification) o;
+		return Objects.equals(this.smiles, classification.smiles) &&
+				Objects.equals(this.prediction, classification.prediction);
+	}
 
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(java.lang.Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
+	@Override
+	public int hashCode() {
+		return Objects.hash(smiles, prediction);
+	}
+
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("class Classification {\n");
+
+		sb.append("    smiles: ").append(toIndentedString(smiles)).append("\n");
+		sb.append("    prediction: ").append(toIndentedString(prediction)).append("\n");
+		sb.append("}");
+		return sb.toString();
+	}
+
+	/**
+	 * Convert the given object to string with each line indented by 4 spaces
+	 * (except the first line).
+	 */
+	private String toIndentedString(java.lang.Object o) {
+		if (o == null) {
+			return "null";
+		}
+		return o.toString().replace("\n", "\n    ");
+	}
 }
 

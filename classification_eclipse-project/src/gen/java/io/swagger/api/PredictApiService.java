@@ -19,5 +19,5 @@ import javax.ws.rs.core.SecurityContext;
 import javax.validation.constraints.*;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public abstract class PredictApiService {
-    public abstract Response predictPost(Double confidence,String smiles,SecurityContext securityContext) throws NotFoundException;
+    public abstract Response predictPost(String smiles,SecurityContext securityContext) throws NotFoundException;
 }

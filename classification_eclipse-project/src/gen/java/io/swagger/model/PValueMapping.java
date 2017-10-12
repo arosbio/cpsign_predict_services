@@ -26,94 +26,99 @@ import javax.validation.constraints.*;
 @ApiModel(description = "Mapping of label to predicted p-value")
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public class PValueMapping   {
-  @JsonProperty("label")
-  private String label = null;
+	@JsonProperty("label")
+	private String label = null;
 
-  @JsonProperty("pValue")
-  private Double pValue = null;
+	@JsonProperty("pValue")
+	private Double pValue = null;
 
-  public PValueMapping label(String label) {
-    this.label = label;
-    return this;
-  }
+	public PValueMapping(String label, Double pvalue) {
+		this.label = label;
+		this.pValue = pvalue;
+	}
 
-  /**
-   * Label
-   * @return label
-   **/
-  @JsonProperty("label")
-  @ApiModelProperty(required = true, value = "Label")
-  @NotNull
-  public String getLabel() {
-    return label;
-  }
+	public PValueMapping label(String label) {
+		this.label = label;
+		return this;
+	}
 
-  public void setLabel(String label) {
-    this.label = label;
-  }
+	/**
+	 * Label
+	 * @return label
+	 **/
+	@JsonProperty("label")
+	@ApiModelProperty(required = true, value = "Label")
+	@NotNull
+	public String getLabel() {
+		return label;
+	}
 
-  public PValueMapping pValue(Double pValue) {
-    this.pValue = pValue;
-    return this;
-  }
+	public void setLabel(String label) {
+		this.label = label;
+	}
 
-  /**
-   * p-value (or null)
-   * minimum: 0
-   * maximum: 1
-   * @return pValue
-   **/
-  @JsonProperty("pValue")
-  @ApiModelProperty(required = true, value = "p-value (or null)")
-  @NotNull
- @DecimalMin("0") @DecimalMax("1")  public Double getPValue() {
-    return pValue;
-  }
+	public PValueMapping pValue(Double pValue) {
+		this.pValue = pValue;
+		return this;
+	}
 
-  public void setPValue(Double pValue) {
-    this.pValue = pValue;
-  }
+	/**
+	 * p-value (or null)
+	 * minimum: 0
+	 * maximum: 1
+	 * @return pValue
+	 **/
+	@JsonProperty("pValue")
+	@ApiModelProperty(required = true, value = "p-value (or null)")
+	@NotNull
+	@DecimalMin("0") @DecimalMax("1")  public Double getPValue() {
+		return pValue;
+	}
 
-
-  @Override
-  public boolean equals(java.lang.Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PValueMapping pvalueMapping = (PValueMapping) o;
-    return Objects.equals(this.label, pvalueMapping.label) &&
-        Objects.equals(this.pValue, pvalueMapping.pValue);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(label, pValue);
-  }
+	public void setPValue(Double pValue) {
+		this.pValue = pValue;
+	}
 
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class PValueMapping {\n");
-    
-    sb.append("    label: ").append(toIndentedString(label)).append("\n");
-    sb.append("    pValue: ").append(toIndentedString(pValue)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
+	@Override
+	public boolean equals(java.lang.Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		PValueMapping pvalueMapping = (PValueMapping) o;
+		return Objects.equals(this.label, pvalueMapping.label) &&
+				Objects.equals(this.pValue, pvalueMapping.pValue);
+	}
 
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(java.lang.Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
+	@Override
+	public int hashCode() {
+		return Objects.hash(label, pValue);
+	}
+
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("class PValueMapping {\n");
+
+		sb.append("    label: ").append(toIndentedString(label)).append("\n");
+		sb.append("    pValue: ").append(toIndentedString(pValue)).append("\n");
+		sb.append("}");
+		return sb.toString();
+	}
+
+	/**
+	 * Convert the given object to string with each line indented by 4 spaces
+	 * (except the first line).
+	 */
+	private String toIndentedString(java.lang.Object o) {
+		if (o == null) {
+			return "null";
+		}
+		return o.toString().replace("\n", "\n    ");
+	}
 }
 

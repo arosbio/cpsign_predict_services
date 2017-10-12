@@ -59,19 +59,18 @@ public class PredictApi  {
     
     @Consumes({ "multipart/form-data" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Make a prediction on the given SMILES", notes = "", response = Classification.class, tags={  })
+    @io.swagger.annotations.ApiOperation(value = "Make a prediction on the given SMILES", notes = "", response = Void.class, tags={  })
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK", response = Classification.class),
         
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request", response = Classification.class),
+        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request", response = BadRequestError.class),
         
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Prediction error", response = Classification.class),
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Prediction error", response = Error.class),
         
-        @io.swagger.annotations.ApiResponse(code = 503, message = "Service not available", response = Classification.class) })
-    public Response predictPost(@ApiParam(value = "The desired confidence of the prediction", required=true, defaultValue="0.8")@FormDataParam("confidence")  Double confidence
-,@ApiParam(value = "Compound structure notation using SMILES notation", required=true, defaultValue="CCCCC=O")@FormDataParam("smiles")  String smiles
+        @io.swagger.annotations.ApiResponse(code = 503, message = "Service not available", response = Error.class) })
+    public Response predictPost(@ApiParam(value = "Compound structure notation using SMILES notation", required=true, defaultValue="CCCCC=O")@FormDataParam("smiles")  String smiles
 ,@Context SecurityContext securityContext)
     throws NotFoundException {
-        return delegate.predictPost(confidence,smiles,securityContext);
+        return delegate.predictPost(smiles,securityContext);
     }
 }
