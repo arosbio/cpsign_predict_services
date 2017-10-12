@@ -22,134 +22,124 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.*;
 
+import org.json.simple.JSONObject;
+
 /**
  * BadRequestError
  */
 @ApiModel(description = "BadRequestError")
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public class BadRequestError   {
-  @JsonProperty("code")
-  private Integer code = null;
+	@JsonProperty("code")
+	private Integer code = null;
 
-  @JsonProperty("message")
-  private String message = null;
+	@JsonProperty("message")
+	private String message = null;
 
-  @JsonProperty("fields")
-  private List<String> fields = new ArrayList<String>();
+	@JsonProperty("fields")
+	private List<String> fields = new ArrayList<String>();
 
-  public BadRequestError(int code, String message, List<String> fields) {
-	  this.code = code;
-	  this.message = message;
-	  this.fields = fields;
-  }
+	public BadRequestError(int code, String message, List<String> fields) {
+		this.code = code;
+		this.message = message;
+		this.fields = fields;
+	}
 
-public BadRequestError code(Integer code) {
-    this.code = code;
-    return this;
-  }
+	public BadRequestError code(Integer code) {
+		this.code = code;
+		return this;
+	}
 
-  /**
-   * HTTP status code
-   * @return code
-   **/
-  @JsonProperty("code")
-  @ApiModelProperty(required = true, value = "HTTP status code")
-  @NotNull
-  public Integer getCode() {
-    return code;
-  }
+	/**
+	 * HTTP status code
+	 * @return code
+	 **/
+	@JsonProperty("code")
+	@ApiModelProperty(required = true, value = "HTTP status code")
+	@NotNull
+	public Integer getCode() {
+		return code;
+	}
 
-  public void setCode(Integer code) {
-    this.code = code;
-  }
+	public void setCode(Integer code) {
+		this.code = code;
+	}
 
-  public BadRequestError message(String message) {
-    this.message = message;
-    return this;
-  }
+	public BadRequestError message(String message) {
+		this.message = message;
+		return this;
+	}
 
-  /**
-   * Error message
-   * @return message
-   **/
-  @JsonProperty("message")
-  @ApiModelProperty(required = true, value = "Error message")
-  @NotNull
-  public String getMessage() {
-    return message;
-  }
+	/**
+	 * Error message
+	 * @return message
+	 **/
+	@JsonProperty("message")
+	@ApiModelProperty(required = true, value = "Error message")
+	@NotNull
+	public String getMessage() {
+		return message;
+	}
 
-  public void setMessage(String message) {
-    this.message = message;
-  }
+	public void setMessage(String message) {
+		this.message = message;
+	}
 
-  public BadRequestError fields(List<String> fields) {
-    this.fields = fields;
-    return this;
-  }
+	public BadRequestError fields(List<String> fields) {
+		this.fields = fields;
+		return this;
+	}
 
-  public BadRequestError addFieldsItem(String fieldsItem) {
-    this.fields.add(fieldsItem);
-    return this;
-  }
+	public BadRequestError addFieldsItem(String fieldsItem) {
+		this.fields.add(fieldsItem);
+		return this;
+	}
 
-  /**
-   * Relevant field(s)
-   * @return fields
-   **/
-  @JsonProperty("fields")
-  @ApiModelProperty(required = true, value = "Relevant field(s)")
-  @NotNull
-  public List<String> getFields() {
-    return fields;
-  }
+	/**
+	 * Relevant field(s)
+	 * @return fields
+	 **/
+	@JsonProperty("fields")
+	@ApiModelProperty(required = true, value = "Relevant field(s)")
+	@NotNull
+	public List<String> getFields() {
+		return fields;
+	}
 
-  public void setFields(List<String> fields) {
-    this.fields = fields;
-  }
-
-
-  @Override
-  public boolean equals(java.lang.Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    BadRequestError badRequestError = (BadRequestError) o;
-    return Objects.equals(this.code, badRequestError.code) &&
-        Objects.equals(this.message, badRequestError.message) &&
-        Objects.equals(this.fields, badRequestError.fields);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(code, message, fields);
-  }
+	public void setFields(List<String> fields) {
+		this.fields = fields;
+	}
 
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("class BadRequestError {\n");
-    
-    sb.append("    code: ").append(toIndentedString(code)).append("\n");
-    sb.append("    message: ").append(toIndentedString(message)).append("\n");
-    sb.append("    fields: ").append(toIndentedString(fields)).append("\n");
-    sb.append("}");
-    return sb.toString();
-  }
+	@Override
+	public boolean equals(java.lang.Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		BadRequestError badRequestError = (BadRequestError) o;
+		return Objects.equals(this.code, badRequestError.code) &&
+				Objects.equals(this.message, badRequestError.message) &&
+				Objects.equals(this.fields, badRequestError.fields);
+	}
 
-  /**
-   * Convert the given object to string with each line indented by 4 spaces
-   * (except the first line).
-   */
-  private String toIndentedString(java.lang.Object o) {
-    if (o == null) {
-      return "null";
-    }
-    return o.toString().replace("\n", "\n    ");
-  }
+	@Override
+	public int hashCode() {
+		return Objects.hash(code, message, fields);
+	}
+
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public String toString() {
+		JSONObject jsonResponse = new JSONObject();
+
+		jsonResponse.put("code", getCode());
+		jsonResponse.put("message", getMessage());
+		jsonResponse.put("fields", fields);
+
+		return jsonResponse.toJSONString();
+	}
 }
-

@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.validation.constraints.*;
 
+import org.json.simple.JSONObject;
+
 /**
  * Classification
  */
@@ -106,15 +108,15 @@ public class Classification   {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("class Classification {\n");
+		JSONObject jsonResponse = new JSONObject();
 
-		sb.append("    smiles: ").append(toIndentedString(smiles)).append("\n");
-		sb.append("    prediction: ").append(toIndentedString(prediction)).append("\n");
-		sb.append("}");
-		return sb.toString();
+		jsonResponse.put("smiles", getSmiles());
+		jsonResponse.put("prediction", getPrediction());
+
+		return jsonResponse.toJSONString();
 	}
 
 	/**
