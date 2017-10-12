@@ -30,6 +30,7 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
+    <!-- 
 	<servlet>
 		<servlet-name>Jersey2Config</servlet-name>
 		<servlet-class>io.swagger.jersey.config.JerseyJaxrsConfig</servlet-class>
@@ -41,9 +42,10 @@
 			<param-name>swagger.api.title</param-name>
 			<param-value>Swagger Server</param-value>
 		</init-param>
-
 		<load-on-startup>2</load-on-startup>
 	</servlet>
+     -->
+	
 	<servlet>
 		<servlet-name>Bootstrap</servlet-name>
 		<servlet-class>io.swagger.api.Bootstrap</servlet-class>

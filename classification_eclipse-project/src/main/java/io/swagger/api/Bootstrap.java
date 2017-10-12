@@ -31,9 +31,8 @@ public class Bootstrap extends HttpServlet {
     path = path + "cpsign.predict.rest.classification-1.0.0/v1";
     
 
-    Swagger swagger = new Swagger().info(info);
+    Swagger swagger = new Swagger().info(info).basePath(path);
     swagger.setSchemes( new ArrayList<Scheme>(Arrays.asList(Scheme.HTTP)) );
-    swagger.setBasePath(path);
 
     new SwaggerContextService().withServletConfig(config).updateSwagger(swagger);
   }
