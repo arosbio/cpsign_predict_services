@@ -26,9 +26,14 @@ public class Bootstrap extends HttpServlet {
       .license(new License()
         .name("")
         .url(""));
+    
+    String path = config.getServletContext().getContextPath();
+    path = path + "cpsign.predict.rest.classification-1.0.0/v1";
+    
 
     Swagger swagger = new Swagger().info(info);
     swagger.setSchemes( new ArrayList<Scheme>(Arrays.asList(Scheme.HTTP)) );
+    swagger.setBasePath(path);
 
     new SwaggerContextService().withServletConfig(config).updateSwagger(swagger);
   }
