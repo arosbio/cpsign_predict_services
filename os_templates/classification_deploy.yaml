@@ -116,7 +116,7 @@ objects:
 
     spec:
         host: m${MODEL_ID}.130.238.55.60.nip.io
-        path: /swagger-jaxrs-server-1.0.0
+        path: /cpsign.predict.rest.classification-1.0.0
         to:
             kind: Service
             name: cpsign-classification-${MODEL_ID}

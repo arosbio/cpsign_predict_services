@@ -11,7 +11,6 @@ import io.swagger.api.PredictApiService;
 public class PredictApiServiceImpl extends PredictApiService {
     @Override
     public Response predictPost(String smiles, SecurityContext securityContext) throws NotFoundException {
-        // do some magic!
     		return Predict.doPredict(smiles);
     }
 }
