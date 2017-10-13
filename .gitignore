@@ -3,3 +3,4 @@ swagger/.classification_swagger.yaml.swp
 os_templates/.classification_build.yaml.swp
 os_templates/.classification_deploy.yaml.swp
 os_templates/.commands.sh.swp
+os_templates/.setupserviceaccounts.sh.swp
