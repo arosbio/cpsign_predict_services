@@ -27,11 +27,12 @@ objects:
             dockerfile: |
                 FROM cpsign-classification:latest
                 RUN mkdir /opt/app-root/modeldata
-                RUN curl -o /opt/app-root/modeldata/model.jar -X GET "${JAR_URL}" -H "accept: application/json" -H "Authorization: bearer ${TOKEN}"
-                RUN curl -o /opt/app-root/modeldata/license.license -X GET "${LICENSE_URL}" -H "accept: application/json" -H "Authorization: bearer ${TOKEN}"
+                RUN curl -v -o /opt/app-root/modeldata/model.jar -X GET "${JAR_URL}" -H "accept: application/json" -H "Authorization: bearer ${TOKEN}"
+                RUN curl -v -o /opt/app-root/modeldata/license.license -X GET "${LICENSE_URL}" -H "accept: application/json" -H "Authorization: bearer ${TOKEN}"
             
         strategy:
             dockerStrategy:
+                noCache: true
                 from:
                     kind: ImageStreamTag
                     name: cpsign-classification:latest
