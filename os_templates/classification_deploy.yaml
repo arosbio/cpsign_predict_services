@@ -117,7 +117,7 @@ objects:
 
     spec:
         host: m${MODEL_ID}.130.238.55.60.nip.io
-        path: /cpsign.predict.rest.classification-1.0.0
+        path: /
         to:
             kind: Service
             name: cpsign-classification-${MODEL_ID}

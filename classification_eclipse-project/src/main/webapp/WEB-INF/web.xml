@@ -43,7 +43,7 @@
 		</init-param>
 		<init-param>
             <param-name>swagger.api.basepath</param-name>
-            <param-value>/cpsign.predict.rest.classification-1.0.0/v1</param-value>
+            <param-value>/v1</param-value>
         </init-param>
 		<load-on-startup>2</load-on-startup>
 	</servlet>
