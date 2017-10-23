@@ -92,6 +92,7 @@ objects:
                             scheme: HTTP
                         timeoutSeconds: 1
                         periodSeconds: 10
+                        initialDelaySeconds: 30
                         successThreshold: 1
                         failureThreshold: 3
                     terminationMessagePath: /dev/termination-log
