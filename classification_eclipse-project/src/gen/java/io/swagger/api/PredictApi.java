@@ -26,8 +26,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.*;
 import javax.validation.constraints.*;
 
-@Path("/predict")
-
+@Path("/")
 
 @io.swagger.annotations.Api(description = "the predict API")
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
@@ -55,11 +54,12 @@ public class PredictApi  {
       this.delegate = delegate;
    }
 
+	@Path("/predict")
     @POST
     
     @Consumes({ "multipart/form-data" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Make a prediction on the given SMILES", notes = "", response = Void.class, tags={  })
+    @io.swagger.annotations.ApiOperation(value = "Make a prediction on the given SMILES", notes = "", response = Void.class, tags={"Predict"})
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "OK", response = Classification.class),
         
@@ -72,5 +72,27 @@ public class PredictApi  {
 ,@Context SecurityContext securityContext)
     throws NotFoundException {
         return delegate.predictPost(smiles,securityContext);
+    }
+    
+    
+	@Path("/predictImage")
+    @POST
+
+    @Consumes({ "multipart/form-data" })
+    @Produces("image/png")
+    @io.swagger.annotations.ApiOperation(value = "Make a prediction image from the given SMILES", notes = "", response = Void.class, tags={"Predict"})
+    @io.swagger.annotations.ApiResponses(value = { 
+        @io.swagger.annotations.ApiResponse(code = 200, message = "OK"),
+        
+        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request", response = BadRequestError.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 500, message = "Prediction error", response = Error.class),
+        
+        @io.swagger.annotations.ApiResponse(code = 503, message = "Service not available", response = Error.class) })
+    public Response predictImagePost( 
+    		@ApiParam(value = "Compound structure notation using SMILES notation", required=true, defaultValue="CCCCC=O")@FormDataParam("smiles")  String smiles, 
+    		@Context SecurityContext securityContext ) {
+    		
+    		return  delegate.predictImagePost(smiles, securityContext);
     }
 }

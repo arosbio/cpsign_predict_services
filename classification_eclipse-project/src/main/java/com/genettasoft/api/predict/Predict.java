@@ -1,5 +1,9 @@
 package com.genettasoft.api.predict;
 
+import java.awt.font.ImageGraphicAttribute;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,15 +15,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
+import com.genettasoft.depict.GradientFactory;
 import com.genettasoft.modeling.CPSignFactory;
 import com.genettasoft.modeling.cheminf.SignaturesCPClassification;
+import com.genettasoft.modeling.cheminf.SignificantSignature;
 import com.genettasoft.modeling.io.bndTools.BNDLoader;
+import com.genettasoft.modeling.io.chemwriter.MolImageDepictor;
 
 import io.swagger.model.PValueMapping;
 
@@ -111,6 +119,48 @@ public class Predict {
 			CDKMutexLock.releaseLock();
 			logger.debug("Failed predicting smiles=" + smiles, e);
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
+		}
+	}
+	
+	public static Response doPredictImage(String smiles) {
+		if(serverErrorResponse != null)
+			return serverErrorResponse;
+		
+		if (smiles==null || smiles.isEmpty()){
+			logger.debug("Missing arguments 'smiles'");
+			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "missing argument", Arrays.asList("smiles")).toString() ).build();
+		}
+
+		IAtomContainer molToPredict=null;
+		CDKMutexLock.requireLock();
+		try {
+			molToPredict = CPSignFactory.parseSMILES(smiles);
+		} catch(IllegalArgumentException e){
+			logger.debug("Got exception when parsing smiles: " + e.getMessage() + "\nreturning error-msg and stopping", e);
+			CDKMutexLock.releaseLock();
+			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Invalid query SMILES '" + smiles + "'", Arrays.asList("smiles")).toString() ).build();
+		}
+		
+		SignificantSignature signSign = null;
+		
+		try {
+			 signSign = model.predictSignificantSignature(molToPredict);
+			 MolImageDepictor depictor = MolImageDepictor.getGradientDepictor(GradientFactory.getDefaultBloomGradient());
+			 depictor.setDepictLegend(true);
+			 BufferedImage image = depictor.depictMolecule(molToPredict, signSign.getAtomValues());
+			 
+			 ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			 ImageIO.write(image, "png", baos);
+			 byte[] imageData = baos.toByteArray();
+			 
+			 return Response.ok( new ByteArrayInputStream(imageData) ).build();
+		}
+		catch (IllegalAccessException | CDKException | IOException e) {
+			logger.debug("Failed predicting smiles=" + smiles, e);
+			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
+		}
+		finally {
+			CDKMutexLock.releaseLock();
 		}
 	}
 }

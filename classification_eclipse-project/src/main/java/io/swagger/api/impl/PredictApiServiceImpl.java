@@ -13,4 +13,9 @@ public class PredictApiServiceImpl extends PredictApiService {
     public Response predictPost(String smiles, SecurityContext securityContext) throws NotFoundException {
     		return Predict.doPredict(smiles);
     }
+
+	@Override
+	public Response predictImagePost(String smiles, SecurityContext securityContext) {
+		return Predict.doPredictImage(smiles);
+	}
 }
