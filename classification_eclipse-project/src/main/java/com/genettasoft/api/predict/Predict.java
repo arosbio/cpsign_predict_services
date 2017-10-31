@@ -23,6 +23,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
 import com.genettasoft.depict.GradientFactory;
+import com.genettasoft.depict.MoleculeDepictor;
 import com.genettasoft.modeling.CPSignFactory;
 import com.genettasoft.modeling.cheminf.SignaturesCPClassification;
 import com.genettasoft.modeling.cheminf.SignificantSignature;
@@ -146,8 +147,11 @@ public class Predict {
 		try {
 			 signSign = model.predictSignificantSignature(molToPredict);
 			 MolImageDepictor depictor = MolImageDepictor.getGradientDepictor(GradientFactory.getDefaultBloomGradient());
+//			 MoleculeDepictor depictor = MoleculeDepictor.getBloomDepictor();
 			 depictor.setDepictLegend(true);
+			 
 			 BufferedImage image = depictor.depictMolecule(molToPredict, signSign.getAtomValues());
+//			 BufferedImage image = depictor.depict(molToPredict, signSign.getAtomValues())
 			 
 			 ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			 ImageIO.write(image, "png", baos);
