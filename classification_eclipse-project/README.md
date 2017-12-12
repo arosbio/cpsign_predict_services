@@ -21,3 +21,10 @@ http://localhost:8080/swagger.json
 
 Note that if you have configured the `host` to be something other than localhost, the calls through
 swagger-ui will be directed to that host and not localhost!
+
+## Add CPSign-jar to maven local repo
+
+https://devcenter.heroku.com/articles/local-maven-dependencies
+
+cd into the libs directory, run command (change to proper file path):
+mvn deploy:deploy-file -Durl=file:///Users/staffan/git/cpsign.predictserver/classification_eclipse-project/repo/ -Dfile=cpsign-0.6.9.jar -DgroupId=com.genettasoft -DartifactId=cpsign -Dpackaging=jar -Dversion=0.6.9
