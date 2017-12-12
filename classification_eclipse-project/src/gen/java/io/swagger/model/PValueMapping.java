@@ -43,7 +43,7 @@ public class PValueMapping {
 
 	public PValueMapping(String label, Double pvalue) {
 		this.label = label;
-		this.pValue = pvalue;
+		this.pValue = round(pvalue);
 	}
 	
 	@Override
@@ -74,5 +74,9 @@ public class PValueMapping {
 		jsonResponse.put("pValue", pValue);
 
 		return jsonResponse.toJSONString();
+	}
+	
+	private static double round(double val){
+		return Math.round(val*1000.0)/1000.0;
 	}
 }
