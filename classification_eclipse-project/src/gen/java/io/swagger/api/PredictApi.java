@@ -90,10 +90,16 @@ public class PredictApi  {
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
 	public Response predictImagePost( 
-			@ApiParam(value = "Compound structure notation using SMILES notation", required=true)
-			@DefaultValue("CCCCC=O") @QueryParam("smiles") String smiles, 
+			@ApiParam(value = "Compound structure notation using SMILES notation")
+			@DefaultValue("CCCCC=O") @QueryParam("smiles") String smiles,
+			@ApiParam(value = "Image width")
+			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
+			@ApiParam(value = "Image height")
+			@DefaultValue("600") @QueryParam("imageHeight") int imageHeight,
+			@ApiParam(value = "Add p-value to figure")
+			@DefaultValue("false") @QueryParam("addPvals") boolean addPvals,
 			@Context SecurityContext securityContext ) {
 
-		return delegate.predictImagePost(smiles, securityContext);
+		return delegate.predictImagePost(smiles, imageWidth, imageHeight, addPvals, securityContext);
 	}
 }

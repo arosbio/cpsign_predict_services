@@ -21,12 +21,15 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
+import com.genettasoft.chem.io.out.MoleculeFigure.GradientFigureBuilder;
+import com.genettasoft.chem.io.out.MoleculeGradientDepictor;
+import com.genettasoft.chem.io.out.fields.ColorGradientField;
+import com.genettasoft.chem.io.out.fields.PValuesField;
 import com.genettasoft.depict.GradientFactory;
 import com.genettasoft.modeling.CPSignFactory;
 import com.genettasoft.modeling.cheminf.SignaturesCPClassification;
 import com.genettasoft.modeling.cheminf.SignificantSignature;
 import com.genettasoft.modeling.io.bndTools.BNDLoader;
-import com.genettasoft.modeling.io.chemwriter.MolImageDepictor;
 
 import io.swagger.model.PValueMapping;
 
@@ -36,6 +39,9 @@ public class Predict {
 	private static Response serverErrorResponse = null;
 	private static SignaturesCPClassification model;
 	private static CPSignFactory factory;
+
+	private static final int MIN_IMAGE_SIZE = 50;
+	private static final int MAX_IMAGE_SIZE = 5000;
 
 	static {
 
@@ -121,13 +127,35 @@ public class Predict {
 		}
 	}
 
-	public static Response doPredictImage(String smiles) {
+	public static Response doPredictImage(String smiles, int imageWidth, int imageHeight, boolean addPvaluesField) {
 		if(serverErrorResponse != null)
 			return serverErrorResponse;
 
+		// Return empty img if no smiles sent
 		if (smiles==null || smiles.isEmpty()){
-			logger.debug("Missing arguments 'smiles'");
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "missing argument", Arrays.asList("smiles")).toString() ).build();
+			// return an empty img
+			try{
+				BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				ImageIO.write(image, "png", baos);
+				byte[] imageData = baos.toByteArray();
+
+				return Response.ok( new ByteArrayInputStream(imageData) ).build();
+			} catch ( IOException e) {
+				logger.info("Failed returning empty image for empty smiles");
+				return Response.status(500).entity(new io.swagger.model.Error(500, "Server error").toJSON()).build();
+			}
+		}
+
+		if(imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
+			logger.warn("Failing execution due to too small image required");
+			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and with must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+		}
+
+		if (imageWidth > MAX_IMAGE_SIZE || imageHeight> MAX_IMAGE_SIZE){
+			logger.warn("Failing execution due to too large image requested");
+			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
 		}
 
 		IAtomContainer molToPredict=null;
@@ -144,12 +172,21 @@ public class Predict {
 
 		try {
 			signSign = model.predictSignificantSignature(molToPredict);
-			MolImageDepictor depictor = MolImageDepictor.getGradientDepictor(GradientFactory.getDefaultBloomGradient());
-			//			 MoleculeDepictor depictor = MoleculeDepictor.getBloomDepictor();
-			depictor.setDepictLegend(true);
 
-			BufferedImage image = depictor.depictMolecule(molToPredict, signSign.getAtomValues());
-			//			 BufferedImage image = depictor.depict(molToPredict, signSign.getAtomValues())
+			// Create the depiction
+			MoleculeGradientDepictor depictor = new MoleculeGradientDepictor(GradientFactory.getDefaultBloomGradient());
+			depictor.setImageHeight(imageHeight);
+			depictor.setImageWidth(imageWidth);
+			GradientFigureBuilder builder = new GradientFigureBuilder(depictor);
+
+			// add confidence interval only if given confidence and image size is big enough
+			if (addPvaluesField && imageWidth>80){
+				Map<String,Double> pVals = model.predictMondrian(molToPredict);
+				builder.addFieldUnderImg(new PValuesField(pVals));
+			}
+			builder.addFieldUnderImg(new ColorGradientField(depictor.getColorGradient()));
+
+			BufferedImage image = builder.build(molToPredict, signSign.getAtomValues()).getImage();
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", baos);

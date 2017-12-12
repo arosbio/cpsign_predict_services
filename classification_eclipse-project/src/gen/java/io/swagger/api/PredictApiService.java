@@ -1,25 +1,9 @@
 package io.swagger.api;
 
-import io.swagger.api.*;
-import io.swagger.model.*;
-
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-
-import io.swagger.model.BadRequestError;
-import io.swagger.model.Classification;
-import io.swagger.model.Error;
-
-import java.util.List;
-import io.swagger.api.NotFoundException;
-
-import java.io.InputStream;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.validation.constraints.*;
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
+
 public abstract class PredictApiService {
     public abstract Response predictPost(String smiles,SecurityContext securityContext) throws NotFoundException;
-
-	public abstract Response predictImagePost(String smiles, SecurityContext securityContext);
+	public abstract Response predictImagePost(String smiles, int imageWidth, int imageHeight, boolean addPvalsLabel, SecurityContext securityContext);
 }
