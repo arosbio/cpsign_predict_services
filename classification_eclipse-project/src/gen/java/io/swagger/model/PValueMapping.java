@@ -14,13 +14,17 @@
 package io.swagger.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import javax.validation.constraints.*;
+
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotNull;
 
 import org.json.simple.JSONObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Mapping of label to predicted p-value
@@ -29,59 +33,20 @@ import org.json.simple.JSONObject;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public class PValueMapping   {
 	@JsonProperty("label")
-	private String label = null;
+	@ApiModelProperty(required = true, value = "Label")
+	private final String label;
 
 	@JsonProperty("pValue")
-	private Double pValue = null;
+	@ApiModelProperty(required = true, value = "p-value")
+	@NotNull
+	@DecimalMin("0") @DecimalMax("1")
+	private final Double pValue;
 
 	public PValueMapping(String label, Double pvalue) {
 		this.label = label;
 		this.pValue = pvalue;
 	}
-
-	public PValueMapping label(String label) {
-		this.label = label;
-		return this;
-	}
-
-	/**
-	 * Label
-	 * @return label
-	 **/
-	@JsonProperty("label")
-	@ApiModelProperty(required = true, value = "Label")
-	@NotNull
-	public String getLabel() {
-		return label;
-	}
-
-	public void setLabel(String label) {
-		this.label = label;
-	}
-
-	public PValueMapping pValue(Double pValue) {
-		this.pValue = pValue;
-		return this;
-	}
-
-	/**
-	 * p-value (or null)
-	 * minimum: 0
-	 * maximum: 1
-	 * @return pValue
-	 **/
-	@JsonProperty("pValue")
-	@ApiModelProperty(required = true, value = "p-value (or null)")
-	@NotNull
-	@DecimalMin("0") @DecimalMax("1")  public Double getPValue() {
-		return pValue;
-	}
-
-	public void setPValue(Double pValue) {
-		this.pValue = pValue;
-	}
-
-
+	
 	@Override
 	public boolean equals(java.lang.Object o) {
 		if (this == o) {
@@ -106,8 +71,8 @@ public class PValueMapping   {
 		
 		JSONObject jsonResponse = new JSONObject();
 
-		jsonResponse.put("label", getLabel());
-		jsonResponse.put("pValue", getPValue());
+		jsonResponse.put("label", label);
+		jsonResponse.put("pValue", pValue);
 
 		return jsonResponse.toJSONString();
 	}
