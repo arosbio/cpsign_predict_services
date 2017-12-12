@@ -142,7 +142,7 @@ public class Predict {
 				byte[] imageData = baos.toByteArray();
 
 				return Response.ok( new ByteArrayInputStream(imageData) ).build();
-			} catch ( IOException e) {
+			} catch (IOException e) {
 				logger.info("Failed returning empty image for empty smiles");
 				return Response.status(500).entity(new io.swagger.model.Error(500, "Server error").toJSON()).build();
 			}

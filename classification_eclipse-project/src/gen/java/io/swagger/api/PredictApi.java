@@ -64,7 +64,7 @@ public class PredictApi  {
 			@ApiResponse(code = 500, message = "Prediction error", response = Error.class),
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
-	public Response predictPost(
+	public Response predictGet(
 			@ApiParam(value = "Compound structure notation using SMILES notation", required=true)
 			@DefaultValue("CCCCC=O") @QueryParam("smiles") String smiles,
 			@Context SecurityContext securityContext)
@@ -89,14 +89,14 @@ public class PredictApi  {
 			@ApiResponse(code = 500, message = "Prediction error", response = Error.class),
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
-	public Response predictImagePost( 
-			@ApiParam(value = "Compound structure notation using SMILES notation")
-			@DefaultValue("CCCCC=O") @QueryParam("smiles") String smiles,
-			@ApiParam(value = "Image width")
+	public Response predictImageGet( 
+			@ApiParam(value = "Compound structure notation using SMILES notation", defaultValue="CCCCC=O")
+			@QueryParam("smiles") String smiles,
+			@ApiParam(value = "Image width", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
-			@ApiParam(value = "Image height")
+			@ApiParam(value = "Image height", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageHeight") int imageHeight,
-			@ApiParam(value = "Add p-value to figure")
+			@ApiParam(value = "Write p-values in figure")
 			@DefaultValue("false") @QueryParam("addPvals") boolean addPvals,
 			@Context SecurityContext securityContext ) {
 

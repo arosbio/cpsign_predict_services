@@ -31,7 +31,7 @@ import io.swagger.annotations.ApiModelProperty;
 public class BadRequestError extends Error {
 
 	@JsonProperty("fields")
-	@ApiModelProperty(required = true, value = "Relevant field(s)", example="smiles")
+	@ApiModelProperty(required = true, value = "Relevant field(s)", dataType="List", example="imageWidth, imageHeight")
 	private List<String> fields = new ArrayList<String>();
 
 	public BadRequestError(int code, String message, List<String> fields) {
