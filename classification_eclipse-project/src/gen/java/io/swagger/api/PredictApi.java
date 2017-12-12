@@ -18,7 +18,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.api.factories.PredictApiServiceFactory;
 import io.swagger.model.BadRequestError;
-import io.swagger.model.Classification;
+import io.swagger.model.ClassificationResult;
 import io.swagger.model.Error;
 
 @Path("/")
@@ -57,7 +57,7 @@ public class PredictApi  {
 	response = Void.class, 
 	tags={"Predict"})
 	@ApiResponses(value = { 
-			@ApiResponse(code = 200, message = "OK", response = Classification.class),
+			@ApiResponse(code = 200, message = "OK", response = ClassificationResult.class),
 
 			@ApiResponse(code = 400, message = "Bad Request", response = BadRequestError.class),
 

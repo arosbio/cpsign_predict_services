@@ -28,7 +28,7 @@ import io.swagger.annotations.ApiModelProperty;
  * Classification
  */
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
-public class Classification   {
+public class ClassificationResult   {
 	@JsonProperty("smiles")
 	@ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction", example="CCCCC=O")
 	@NotNull
@@ -38,7 +38,7 @@ public class Classification   {
 	@ApiModelProperty(required=true, value = "Predicted p-values for each label")
 	private List<PValueMapping> prediction;
 
-	public Classification(List<PValueMapping> pvalues, String smiles) {
+	public ClassificationResult(List<PValueMapping> pvalues, String smiles) {
 		this.smiles = smiles;
 		this.prediction = pvalues;
 	}
@@ -51,7 +51,7 @@ public class Classification   {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		Classification classification = (Classification) o;
+		ClassificationResult classification = (ClassificationResult) o;
 		return Objects.equals(this.smiles, classification.smiles) &&
 				Objects.equals(this.prediction, classification.prediction);
 	}

@@ -115,13 +115,13 @@ public class Predict {
 		try {
 			Map<String, Double> res = model.predictMondrian(molToPredict);
 			CDKMutexLock.releaseLock();
-			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
+			logger.debug("Successfully finished predicting smiles="+smiles+", pvalues=" + res );
 			List<PValueMapping> pvalues = new ArrayList<>();
 			for (Entry<String, Double> entry : res.entrySet()) {
 				pvalues.add(new PValueMapping(entry.getKey(), entry.getValue()));
 			}
 
-			return Response.status(200).entity( new io.swagger.model.Classification(pvalues, smiles).toString() ).build();
+			return Response.status(200).entity( new io.swagger.model.ClassificationResult(pvalues, smiles).toString() ).build();
 		} catch (IllegalAccessException | CDKException e) {
 			CDKMutexLock.releaseLock();
 			logger.debug("Failed predicting smiles=" + smiles, e);
@@ -132,7 +132,17 @@ public class Predict {
 	public static Response doPredictImage(String smiles, int imageWidth, int imageHeight, boolean addPvaluesField) {
 		if(serverErrorResponse != null)
 			return serverErrorResponse;
+		
+		if(imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
+			logger.warn("Failing execution due to too small image required");
+			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and with must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+		}
 
+		if (imageWidth > MAX_IMAGE_SIZE || imageHeight> MAX_IMAGE_SIZE){
+			logger.warn("Failing execution due to too large image requested");
+			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+		}
+		
 		// Return empty img if no smiles sent
 		if (smiles==null || smiles.isEmpty()){
 			// return an empty img
@@ -152,17 +162,7 @@ public class Predict {
 				return Response.status(500).entity(new io.swagger.model.Error(500, "Server error").toJSON()).build();
 			}
 		}
-
-		if(imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
-			logger.warn("Failing execution due to too small image required");
-			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and with must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
-		}
-
-		if (imageWidth > MAX_IMAGE_SIZE || imageHeight> MAX_IMAGE_SIZE){
-			logger.warn("Failing execution due to too large image requested");
-			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
-		}
-
+		
 		IAtomContainer molToPredict=null;
 		CDKMutexLock.requireLock();
 		try {
