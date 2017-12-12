@@ -30,12 +30,12 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel(description = "Error")
 public class Error {
 	@JsonProperty("code")
-	@ApiModelProperty(required = true, value = "HTTP status code")
+	@ApiModelProperty(required = true, value = "HTTP status code", example="404")
 	@NotNull
 	private final Integer code;
 
 	@JsonProperty("message")
-	@ApiModelProperty(required = true, value = "Error message")
+	@ApiModelProperty(required = true, value = "Error message", example="Illegal parameter")
 	@NotNull
 	private final String message;
 

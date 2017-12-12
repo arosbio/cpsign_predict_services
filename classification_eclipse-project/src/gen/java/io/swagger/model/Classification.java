@@ -30,7 +30,7 @@ import io.swagger.annotations.ApiModelProperty;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public class Classification   {
 	@JsonProperty("smiles")
-	@ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction")
+	@ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction", example="CCCCC=O")
 	@NotNull
 	private final String smiles;
 

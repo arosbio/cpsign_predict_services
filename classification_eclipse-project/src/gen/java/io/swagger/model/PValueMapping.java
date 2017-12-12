@@ -32,11 +32,11 @@ import io.swagger.annotations.ApiModelProperty;
 @ApiModel(description = "Mapping of label to predicted p-value")
 public class PValueMapping {
 	@JsonProperty("label")
-	@ApiModelProperty(required = true, value = "Label")
+	@ApiModelProperty(required = true, value = "Label", example="mutagen")
 	private final String label;
 
 	@JsonProperty("pValue")
-	@ApiModelProperty(required = true, value = "p-value")
+	@ApiModelProperty(required = true, value = "p-value", example="0.75")
 	@NotNull
 	@DecimalMin("0") @DecimalMax("1")
 	private final Double pValue;
