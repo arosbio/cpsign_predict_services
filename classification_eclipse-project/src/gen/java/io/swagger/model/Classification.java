@@ -13,17 +13,16 @@
 
 package io.swagger.model;
 
-import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.model.PValueMapping;
-import java.util.ArrayList;
 import java.util.List;
-import javax.validation.constraints.*;
+import java.util.Objects;
+
+import javax.validation.constraints.NotNull;
 
 import org.json.simple.JSONObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Classification
@@ -31,63 +30,18 @@ import org.json.simple.JSONObject;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public class Classification   {
 	@JsonProperty("smiles")
-	private String smiles = null;
+	@ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction")
+	@NotNull
+	private final String smiles;
 
 	@JsonProperty("prediction")
-	private List<PValueMapping> prediction = null;
+	@ApiModelProperty(required=true, value = "Predicted p-values for each label")
+	private List<PValueMapping> prediction;
 
 	public Classification(List<PValueMapping> pvalues, String smiles) {
 		this.smiles = smiles;
 		this.prediction = pvalues;
 	}
-
-	public Classification smiles(String smiles) {
-		this.smiles = smiles;
-		return this;
-	}
-
-	/**
-	 * SMILES string for the molecule used in the prediction
-	 * @return smiles
-	 **/
-	@JsonProperty("smiles")
-	@ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction")
-	@NotNull
-	public String getSmiles() {
-		return smiles;
-	}
-
-	public void setSmiles(String smiles) {
-		this.smiles = smiles;
-	}
-
-	public Classification prediction(List<PValueMapping> prediction) {
-		this.prediction = prediction;
-		return this;
-	}
-
-	public Classification addPredictionItem(PValueMapping predictionItem) {
-		if (this.prediction == null) {
-			this.prediction = new ArrayList<PValueMapping>();
-		}
-		this.prediction.add(predictionItem);
-		return this;
-	}
-
-	/**
-	 * Predicted p-values for each label
-	 * @return prediction
-	 **/
-	@JsonProperty("prediction")
-	@ApiModelProperty(value = "Predicted p-values for each label")
-	public List<PValueMapping> getPrediction() {
-		return prediction;
-	}
-
-	public void setPrediction(List<PValueMapping> prediction) {
-		this.prediction = prediction;
-	}
-
 
 	@Override
 	public boolean equals(java.lang.Object o) {
@@ -113,21 +67,10 @@ public class Classification   {
 	public String toString() {
 		JSONObject jsonResponse = new JSONObject();
 
-		jsonResponse.put("smiles", getSmiles());
-		jsonResponse.put("prediction", getPrediction());
+		jsonResponse.put("smiles", smiles);
+		jsonResponse.put("prediction", prediction);
 
 		return jsonResponse.toJSONString();
-	}
-
-	/**
-	 * Convert the given object to string with each line indented by 4 spaces
-	 * (except the first line).
-	 */
-	private String toIndentedString(java.lang.Object o) {
-		if (o == null) {
-			return "null";
-		}
-		return o.toString().replace("\n", "\n    ");
 	}
 }
 

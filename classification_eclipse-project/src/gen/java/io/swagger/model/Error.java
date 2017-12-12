@@ -14,71 +14,35 @@
 package io.swagger.model;
 
 import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import javax.validation.constraints.*;
+
+import javax.validation.constraints.NotNull;
 
 import org.json.simple.JSONObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Error
  */
 @ApiModel(description = "Error")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
-public class Error   {
+public class Error {
 	@JsonProperty("code")
-	private Integer code = null;
+	@ApiModelProperty(required = true, value = "HTTP status code")
+	@NotNull
+	private final Integer code;
 
 	@JsonProperty("message")
-	private String message = null;
+	@ApiModelProperty(required = true, value = "Error message")
+	@NotNull
+	private final String message;
 
 	public Error(int code, String message) {
 		this.code = code;
 		this.message = message;
 	}
-
-	public Error code(Integer code) {
-		this.code = code;
-		return this;
-	}
-
-	/**
-	 * HTTP status code
-	 * @return code
-	 **/
-	@JsonProperty("code")
-	@ApiModelProperty(required = true, value = "HTTP status code")
-	@NotNull
-	public Integer getCode() {
-		return code;
-	}
-
-	public void setCode(Integer code) {
-		this.code = code;
-	}
-
-	public Error message(String message) {
-		this.message = message;
-		return this;
-	}
-
-	/**
-	 * Error message
-	 * @return message
-	 **/
-	@JsonProperty("message")
-	@ApiModelProperty(required = true, value = "Error message")
-	@NotNull
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
-	}
-
 
 	@Override
 	public boolean equals(java.lang.Object o) {
@@ -98,28 +62,20 @@ public class Error   {
 		return Objects.hash(code, message);
 	}
 
-
 	@SuppressWarnings("unchecked")
-	@Override
-	public String toString() {
-
+	public JSONObject toJSON(){
 		JSONObject jsonResponse = new JSONObject();
 
-		jsonResponse.put("code", getCode());
-		jsonResponse.put("message", getMessage());
+		jsonResponse.put("code", code);
+		jsonResponse.put("message", message);
 
-		return jsonResponse.toJSONString();
+		return jsonResponse;
+	}
+	
+	@Override
+	public String toString() {
+		return toJSON().toJSONString();
 	}
 
-	/**
-	 * Convert the given object to string with each line indented by 4 spaces
-	 * (except the first line).
-	 */
-	private String toIndentedString(java.lang.Object o) {
-		if (o == null) {
-			return "null";
-		}
-		return o.toString().replace("\n", "\n    ");
-	}
 }
 

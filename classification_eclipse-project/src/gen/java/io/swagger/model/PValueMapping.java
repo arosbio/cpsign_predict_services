@@ -30,8 +30,7 @@ import io.swagger.annotations.ApiModelProperty;
  * Mapping of label to predicted p-value
  */
 @ApiModel(description = "Mapping of label to predicted p-value")
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
-public class PValueMapping   {
+public class PValueMapping {
 	@JsonProperty("label")
 	@ApiModelProperty(required = true, value = "Label")
 	private final String label;
