@@ -92,10 +92,10 @@ public class PredictApi  {
 	public Response predictImageGet( 
 			@ApiParam(value = "Compound structure notation using SMILES notation", defaultValue="CCCCC=O")
 			@QueryParam("smiles") String smiles,
-			@ApiParam(value = "Image width", allowableValues="range[50,5000]")
+			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
 			@ApiParam(value = "Image height", allowableValues="range[50,5000]")
-			@DefaultValue("600") @QueryParam("imageHeight") int imageHeight,
+			@DefaultValue("600") @QueryParam("imageHeight (min 50 pixels, max 5000 pixels)") int imageHeight,
 			@ApiParam(value = "Write p-values in figure")
 			@DefaultValue("false") @QueryParam("addPvals") boolean addPvals,
 			@Context SecurityContext securityContext ) {

@@ -15,8 +15,6 @@ package io.swagger.model;
 
 import java.util.Objects;
 
-import javax.validation.constraints.NotNull;
-
 import org.json.simple.JSONObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -31,12 +29,10 @@ import io.swagger.annotations.ApiModelProperty;
 public class Error {
 	@JsonProperty("code")
 	@ApiModelProperty(required = true, value = "HTTP status code", example="400")
-	@NotNull
 	private final Integer code;
 
 	@JsonProperty("message")
-	@ApiModelProperty(required = true, value = "Error message", example="Illegal parameter")
-	@NotNull
+	@ApiModelProperty(required = true, value = "Error message", example="Invalid argument")
 	private final String message;
 
 	public Error(int code, String message) {
