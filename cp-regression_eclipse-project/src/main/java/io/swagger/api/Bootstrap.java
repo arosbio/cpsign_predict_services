@@ -21,9 +21,9 @@ public class Bootstrap extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		Info info = new Info()
-				.title("Classification Prediction Server")
+				.title("Conformal Prediction Regression Server")
 				.version("0.1.0")
-				.description("Service that deploys a CPSign classification model and allows for predictions to be made by the deployed model.")
+				.description("Service that deploys a CPSign regression model and allows for predictions to be made by the deployed model.")
 				.termsOfService("")
 				.contact(new Contact()
 						.email("info@genettasoft.com"))
