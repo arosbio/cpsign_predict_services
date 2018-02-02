@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Template
+metadata:
+    name: regression-build-template
+    annotations: 
+        description: "Build the regression image"
+        tags: "cpsign, regression"
+labels:
+    app: cpsign-regression
+objects:
+  - apiVersion: v1
+    kind: ImageStream
+    metadata:
+        name: cpsign-regression
+
+  - apiVersion: v1
+    kind: BuildConfig
+    metadata:
+        name: cpsign-regression
+
+    spec:
+        runPolicy: Serial
+        source:
+            type: Git
+            git:
+                uri: 'ssh://git@bitbucket.org/genettasoft/cpsign.predictserver.git'
+                ref: master
+            contextDir: cp-regression_eclipse-project
+            sourceSecret:
+                name: ${GIT_SOURCESECRET}
+        strategy:
+            type: Source
+            sourceStrategy:
+                from:
+                    kind: ImageStreamTag
+                    namespace: openshift
+                    name: 'wildfly:10.1'
+        output:
+            to:
+                kind: ImageStreamTag
+                name: 'cpsign-regression:latest'
+        triggers:
+          - type: ConfigChange
+parameters:
+  - name: GIT_SOURCESECRET
+    description: Secret containing a private key to be used to access git repo
+
