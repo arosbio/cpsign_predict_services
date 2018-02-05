@@ -11,6 +11,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import org.slf4j.Logger;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -26,6 +28,7 @@ import io.swagger.model.RegressionResult;
 @Api()
 public class PredictApi  {
 	private final PredictApiService delegate;
+	private static Logger logger = org.slf4j.LoggerFactory.getLogger(PredictApi.class);
 
 	public PredictApi(@Context ServletConfig servletContext) {
 		PredictApiService delegate = null;
@@ -96,12 +99,12 @@ public class PredictApi  {
 			@QueryParam("smiles") String smiles,
 			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
-			@ApiParam(value = "Image height", allowableValues="range[50,5000]")
+			@ApiParam(value = "Image height (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageHeight (min 50 pixels, max 5000 pixels)") int imageHeight,
 			@ApiParam(value = "Confidence of prediction (writes interval in figure)", required=false)
 			@QueryParam("confidence") Double confidence,
 			@Context SecurityContext securityContext ) {
-
+		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
 		return delegate.predictImageGet(smiles, imageWidth, imageHeight, confidence, securityContext);
 	}
 }
