@@ -87,7 +87,7 @@ public class Predict {
 	}
 
 	public static Response doPredict(String smiles, double confidence) {
-		logger.debug("got a prediction task, smiles="+smiles);
+		logger.debug("got a prediction task: smiles="+smiles+", conf=" + confidence);
 
 		if(serverErrorResponse != null)
 			return serverErrorResponse;
@@ -120,6 +120,7 @@ public class Predict {
 	}
 
 	public static Response doPredictImage(String smiles, int imageWidth, int imageHeight, Double confidence) {
+		logger.debug("Got predictImage request: smiles="+smiles + ", imageWidth="+imageWidth + ", imageHeight="+imageHeight+", conf="+confidence);
 		if(serverErrorResponse != null)
 			return serverErrorResponse;
 		
