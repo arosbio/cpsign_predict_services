@@ -100,7 +100,7 @@ public class PredictApi  {
 			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
 			@ApiParam(value = "Image height (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
-			@DefaultValue("600") @QueryParam("imageHeight (min 50 pixels, max 5000 pixels)") int imageHeight,
+			@DefaultValue("600") @QueryParam("imageHeight") int imageHeight,
 			@ApiParam(value = "Confidence of prediction (writes interval in figure)", required=false)
 			@QueryParam("confidence") Double confidence,
 			@Context SecurityContext securityContext ) {
