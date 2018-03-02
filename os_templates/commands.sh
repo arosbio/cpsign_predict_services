@@ -21,7 +21,7 @@ exit 0
 
 
 oc delete all -l app=cpsign-regression
-oc delete all -l app=cpsign-regression-20
+oc delete all -l app=cpsign-regression-6
 
 sleep 2
 
@@ -31,9 +31,9 @@ RESULT=`curl --data "grant_type=password&client_id=modelingweb&username=test&pas
 TOKEN=`echo $RESULT | sed 's/.*access_token":"//g' | sed 's/".*//g'`
 
 oc process -f classification_deploy.yaml \
-    -p JAR_URL=http://modelingweb.130.238.55.60.xip.io/api/v1/models/20 \
-    -p LICENSE_URL=http://modelingweb.130.238.55.60.xip.io/api/v1/licenses/1 \
+    -p JAR_URL=http://modelingweb.130.238.55.60.xip.io/api/v1/models/6 \
+    -p LICENSE_URL=http://modelingweb.130.238.55.60.xip.io/api/v1/licenses/25 \
     -p TOKEN=$TOKEN \
-    -p MODEL_ID=20 \
+    -p MODEL_ID=6 \
     -p MODEL_TYPE=regression \
     | oc create -f -

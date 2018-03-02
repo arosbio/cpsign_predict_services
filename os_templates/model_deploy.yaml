@@ -141,7 +141,7 @@ parameters:
     - name: LICENSE_URL
       description: URL from where the license file can be downloaded
     - name: TOKEN
-      description: Keycloak token used for accesing license and model files
+      description: Keycloak token used for accessing license and model files
     - name: MODEL_ID
       description: Unique id for the model.
     - name: MODEL_TYPE
