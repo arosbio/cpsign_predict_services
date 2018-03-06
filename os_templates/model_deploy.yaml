@@ -1,31 +1,31 @@
 apiVersion: v1
 kind: Template
 metadata:
-    name: classification-deploy-template
+    name: ${MODEL_TYPE}-deploy-template
     annotations:
-        description: "Deploy a classification prediction service"
-        tags: "cpsign, classification, cpsign-prediction-service"
+        description: "Deploy a ${MODEL_TYPE} prediction service"
+        tags: "cpsign, ${MODEL_TYPE}, cpsign-prediction-service"
 
 objects:
 
   - apiVersion: v1
     kind: ImageStream
     metadata:
-        name: cpsign-classification-${MODEL_ID}
+        name: cpsign-${MODEL_TYPE}-${MODEL_ID}
         labels:
-            app: cpsign-classification-${MODEL_ID}
+            app: cpsign-${MODEL_TYPE}-${MODEL_ID}
 
   - apiVersion: v1
     kind: BuildConfig
     metadata:
-        name: cpsign-classification-${MODEL_ID}
+        name: cpsign-${MODEL_TYPE}-${MODEL_ID}
         labels:
-            app: cpsign-classification-${MODEL_ID}
+            app: cpsign-${MODEL_TYPE}-${MODEL_ID}
     spec:
         source:
             type: Dockerfile
             dockerfile: |
-                FROM cpsign-classification:latest
+                FROM cpsign-${MODEL_TYPE}:latest
                 RUN mkdir /opt/app-root/modeldata
                 RUN curl -v -o /opt/app-root/modeldata/model.jar -X GET "${JAR_URL}" -H "accept: application/json" -H "Authorization: bearer ${TOKEN}"
                 RUN curl -v -o /opt/app-root/modeldata/license.license -X GET "${LICENSE_URL}" -H "accept: application/json" -H "Authorization: bearer ${TOKEN}"
@@ -35,20 +35,20 @@ objects:
                 noCache: true
                 from:
                     kind: ImageStreamTag
-                    name: cpsign-classification:latest
+                    name: cpsign-${MODEL_TYPE}:latest
         output:
             to:
                 kind: ImageStreamTag
-                name: cpsign-classification-${MODEL_ID}:latest
+                name: cpsign-${MODEL_TYPE}-${MODEL_ID}:latest
         triggers:
           - type: ConfigChange
 
   - apiVersion: v1
     kind: DeploymentConfig
     metadata:
-        name: cpsign-classification-${MODEL_ID}
+        name: cpsign-${MODEL_TYPE}-${MODEL_ID}
         labels:
-            app: cpsign-classification-${MODEL_ID}
+            app: cpsign-${MODEL_TYPE}-${MODEL_ID}
     spec:
         strategy:
             type: Rolling
@@ -65,23 +65,23 @@ objects:
            imageChangeParams:
                automatic: true
                containerNames:
-                   - cpsign-classification-${MODEL_ID}
+                   - cpsign-${MODEL_TYPE}-${MODEL_ID}
                from:
                    kind: ImageStreamTag
-                   name: cpsign-classification-${MODEL_ID}:latest
+                   name: cpsign-${MODEL_TYPE}-${MODEL_ID}:latest
          - type: ConfigChange
         replicas: 1
         selector:
-            deploymentconfig: cpsign-classification-${MODEL_ID}
+            deploymentconfig: cpsign-${MODEL_TYPE}-${MODEL_ID}
         template:
             metadata:
                 labels:
-                    app: cpsign-classification-${MODEL_ID}
-                    deploymentconfig: cpsign-classification-${MODEL_ID}
+                    app: cpsign-${MODEL_TYPE}-${MODEL_ID}
+                    deploymentconfig: cpsign-${MODEL_TYPE}-${MODEL_ID}
             spec:
                 containers:
-                  - name: cpsign-classification-${MODEL_ID}
-                    image: cpsign-classification:latest
+                  - name: cpsign-${MODEL_TYPE}-${MODEL_ID}
+                    image: cpsign-${MODEL_TYPE}:latest
                     ports: 
                       - containerPort: 8080
                         protocol: TCP
@@ -104,9 +104,9 @@ objects:
   - apiVersion: v1
     kind: Service
     metadata:
-        name: cpsign-classification-${MODEL_ID}
+        name: cpsign-${MODEL_TYPE}-${MODEL_ID}
         labels:
-            app: cpsign-classification-${MODEL_ID}
+            app: cpsign-${MODEL_TYPE}-${MODEL_ID}
     spec:
         ports:
           - name: 8080-tcp
@@ -114,23 +114,23 @@ objects:
             port: 8080
             targetPort: 8080
         selector:
-            deploymentconfig: cpsign-classification-${MODEL_ID}
+            deploymentconfig: cpsign-${MODEL_TYPE}-${MODEL_ID}
     status:
         loadBalancer: {}
 
   - apiVersion: v1
     kind: Route
     metadata:
-        name: cpsign-classification-${MODEL_ID}
+        name: cpsign-${MODEL_TYPE}-${MODEL_ID}
         labels:
-            app: cpsign-classification-${MODEL_ID}
+            app: cpsign-${MODEL_TYPE}-${MODEL_ID}
 
     spec:
         host: m${MODEL_ID}.130.238.55.60.nip.io
         path: /
         to:
             kind: Service
-            name: cpsign-classification-${MODEL_ID}
+            name: cpsign-${MODEL_TYPE}-${MODEL_ID}
             weight: 100
         port:
             targetPort: 8080-tcp
@@ -141,6 +141,8 @@ parameters:
     - name: LICENSE_URL
       description: URL from where the license file can be downloaded
     - name: TOKEN
-      description: Keycloak token used for accesing license and model files
+      description: Keycloak token used for accessing license and model files
     - name: MODEL_ID
       description: Unique id for the model.
+    - name: MODEL_TYPE
+      description: Type of model, e.g., classification, regression, etc.
