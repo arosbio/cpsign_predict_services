@@ -33,7 +33,7 @@
         if ( smiles != jsmeApplet.smiles() || confidence != document.getElementById('confidence').value) {
             return;
         }
-        var imageurl = window.location.href.replace("/draw", "v1/predictImage?smiles=" + jsmeApplet.smiles() 
+        var imageurl = window.location.href.replace("/draw/", "v1/predictImage?smiles=" + jsmeApplet.smiles() 
                      + "&imageWidth="  + Math.floor(window.innerWidth*0.9) 
                      + "&imageHeight=" + Math.floor(window.innerHeight*0.40-45-75)
                      + "&addTitle=true" 
