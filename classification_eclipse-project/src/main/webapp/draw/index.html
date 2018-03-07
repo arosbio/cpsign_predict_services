@@ -35,15 +35,6 @@
         tester.src = imageurl;
 	    var image = document.getElementById('image');
 		image.src = imageurl;
-
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-                document.getElementById('prediction_label').innerHTML = xmlhttp.responseText;
-            }
-        }
-        xmlhttp.open("GET", predictionurl, true);
-        xmlhttp.send();
     }
 
 </script>
