@@ -28,7 +28,7 @@
         if ( smiles != jsmeApplet.smiles() ) {
             return;
         }
-        var imageurl = window.location.href + "/v1/predictImage?smiles=" + jsmeApplet.smiles()
+        var imageurl = window.location.href.replace("draw","/v1/predictImage?smiles=" + jsmeApplet.smiles())
         var tester = new Image();
         tester.addEventListener('error', imageNotFound)
         tester.addEventListener('load', imageFound)
