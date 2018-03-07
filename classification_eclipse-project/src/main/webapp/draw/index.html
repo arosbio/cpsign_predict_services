@@ -30,7 +30,7 @@
         }
         var imageurl = window.location.href.replace("/draw/","/v1/predictImage?smiles=" + jsmeApplet.smiles())
                      + "&imageWidth="  + Math.floor(window.innerWidth*0.9) 
-                     + "&imageHeight=" + Math.floor(window.innerHeight*0.40-45-75)
+                     + "&imageHeight=" + Math.floor(window.innerHeight*0.30-45-75)
                      + "&addPvals=true"
         var tester = new Image();
         tester.addEventListener('error', imageNotFound)
