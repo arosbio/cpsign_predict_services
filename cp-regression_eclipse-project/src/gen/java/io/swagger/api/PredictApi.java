@@ -103,8 +103,10 @@ public class PredictApi  {
 			@DefaultValue("600") @QueryParam("imageHeight") int imageHeight,
 			@ApiParam(value = "Confidence of prediction (writes interval in figure)", required=false)
 			@QueryParam("confidence") Double confidence,
+			@ApiParam(value = "Add title to the image (using the model name)")
+			@DefaultValue("false") @QueryParam("addTitle") boolean addTitle,
 			@Context SecurityContext securityContext ) {
 		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
-		return delegate.predictImageGet(smiles, imageWidth, imageHeight, confidence, securityContext);
+		return delegate.predictImageGet(smiles, imageWidth, imageHeight, confidence, addTitle, securityContext);
 	}
 }

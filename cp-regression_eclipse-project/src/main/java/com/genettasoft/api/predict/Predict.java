@@ -23,6 +23,7 @@ import com.genettasoft.chem.io.out.MoleculeFigure.GradientFigureBuilder;
 import com.genettasoft.chem.io.out.MoleculeGradientDepictor;
 import com.genettasoft.chem.io.out.fields.ColorGradientField;
 import com.genettasoft.chem.io.out.fields.PredictionIntervalField;
+import com.genettasoft.chem.io.out.fields.TitleField;
 import com.genettasoft.depict.GradientFactory;
 import com.genettasoft.modeling.CPSignFactory;
 import com.genettasoft.modeling.cheminf.SignaturesCPRegression;
@@ -119,16 +120,16 @@ public class Predict {
 		}
 	}
 
-	public static Response doPredictImage(String smiles, int imageWidth, int imageHeight, Double confidence) {
+	public static Response doPredictImage(String smiles, int imageWidth, int imageHeight, Double confidence, boolean addTitle) {
 		logger.debug("Got predictImage request: smiles="+smiles + ", imageWidth="+imageWidth + ", imageHeight="+imageHeight+", conf="+confidence);
 		if(serverErrorResponse != null)
 			return serverErrorResponse;
-		
+
 		if (confidence != null && (confidence < 0 || confidence > 1)){
 			logger.warn("invalid argument confidence=" + confidence);
 			return Response.status(400).entity(new io.swagger.model.BadRequestError(400, "invalid argument", Arrays.asList("confidence")).toString()).build();
 		}
-		
+
 		if (imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
 			logger.warn("Failing execution due to too small image required");
 			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and with must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
@@ -158,7 +159,7 @@ public class Predict {
 				return Response.status(500).entity(new io.swagger.model.Error(500, "Server error").toJSON()).build();
 			}
 		}
-		
+
 		IAtomContainer molToPredict=null;
 		CDKMutexLock.requireLock();
 		try {
@@ -180,6 +181,10 @@ public class Predict {
 			depictor.setImageWidth(imageWidth);
 			GradientFigureBuilder builder = new GradientFigureBuilder(depictor);
 
+			// Add title if specified
+			if (addTitle) {
+				builder.addFieldOverImg(new TitleField(model.getModelName()));
+			}
 			// add confidence interval only if given confidence and image size is big enough
 			if (confidence != null && imageWidth>80){
 				CPRegressionResult pred = model.predict(molToPredict, confidence);

@@ -27,6 +27,7 @@ import com.genettasoft.chem.io.out.MoleculeFigure.GradientFigureBuilder;
 import com.genettasoft.chem.io.out.MoleculeGradientDepictor;
 import com.genettasoft.chem.io.out.fields.ColorGradientField;
 import com.genettasoft.chem.io.out.fields.PValuesField;
+import com.genettasoft.chem.io.out.fields.TitleField;
 import com.genettasoft.depict.GradientFactory;
 import com.genettasoft.modeling.CPSignFactory;
 import com.genettasoft.modeling.cheminf.SignaturesCPClassification;
@@ -129,7 +130,7 @@ public class Predict {
 		}
 	}
 
-	public static Response doPredictImage(String smiles, int imageWidth, int imageHeight, boolean addPvaluesField) {
+	public static Response doPredictImage(String smiles, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
 		if(serverErrorResponse != null)
 			return serverErrorResponse;
 		
@@ -183,7 +184,11 @@ public class Predict {
 			depictor.setImageHeight(imageHeight);
 			depictor.setImageWidth(imageWidth);
 			GradientFigureBuilder builder = new GradientFigureBuilder(depictor);
-
+			
+			// Add title if specified
+			if (addTitle) {
+				builder.addFieldOverImg(new TitleField(model.getModelName()));
+			}
 			// add confidence interval only if given confidence and image size is big enough
 			if (addPvaluesField && imageWidth>80){
 				Map<String,Double> pVals = model.predictMondrian(molToPredict);

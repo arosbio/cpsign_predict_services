@@ -94,12 +94,14 @@ public class PredictApi  {
 			@QueryParam("smiles") String smiles,
 			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
-			@ApiParam(value = "Image height", allowableValues="range[50,5000]")
+			@ApiParam(value = "Image height (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageHeight (min 50 pixels, max 5000 pixels)") int imageHeight,
 			@ApiParam(value = "Write p-values in figure")
 			@DefaultValue("false") @QueryParam("addPvals") boolean addPvals,
+			@ApiParam(value = "Add title to the image (using the model name)")
+			@DefaultValue("false") @QueryParam("addTitle") boolean addTitle,
 			@Context SecurityContext securityContext ) {
 
-		return delegate.predictImagePost(smiles, imageWidth, imageHeight, addPvals, securityContext);
+		return delegate.predictImagePost(smiles, imageWidth, imageHeight, addPvals, addTitle, securityContext);
 	}
 }

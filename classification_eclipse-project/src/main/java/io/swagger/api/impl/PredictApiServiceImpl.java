@@ -15,8 +15,9 @@ public class PredictApiServiceImpl extends PredictApiService {
     }
     
 	@Override
-	public Response predictImagePost(String smiles, int imageWidth, int imageHeight, boolean addPvalsLabel,
+	public Response predictImagePost(String smiles, int imageWidth, int imageHeight, 
+			boolean addPvalsLabel, boolean addTitle,
 			SecurityContext securityContext) {
-		return Predict.doPredictImage(smiles, imageWidth, imageHeight, addPvalsLabel);
+		return Predict.doPredictImage(smiles, imageWidth, imageHeight, addPvalsLabel, addTitle);
 	}
 }
