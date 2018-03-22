@@ -38,17 +38,23 @@ public class RegressionResult {
 	@JsonProperty("confidence")
 	@ApiModelProperty(value = "The confidence of the prediction", required=true, example="0.8")
 	private final Double confidence;
+	
+	@JsonProperty("modelName")
+	@ApiModelProperty(required=true, value="Name of the model used for the prediction")
+	@NotNull
+	private final String modelName;
 
-	public RegressionResult(String smiles, double lower, double upper, double mp, double confidence) {
+	public RegressionResult(String smiles, double lower, double upper, double mp, double confidence, String modelName) {
 		this.smiles = smiles;
 		this.lower = lower;
 		this.upper = upper;
 		this.predictionMidpoint = mp;
 		this.confidence = confidence;
+		this.modelName = modelName;
 	}
 	
-	public RegressionResult(String smiles, CPRegressionResult res, double confidence){
-		this(smiles, res.getCappedInterval().getValue0(),res.getCappedInterval().getValue1(),res.getY_hat(),confidence);
+	public RegressionResult(String smiles, CPRegressionResult res, double confidence, String modelName){
+		this(smiles, res.getCappedInterval().getValue0(),res.getCappedInterval().getValue1(),res.getY_hat(),confidence, modelName);
 	}
 
 	@Override
@@ -63,12 +69,13 @@ public class RegressionResult {
 		return Objects.equals(this.smiles, prediction.smiles) &&
 				Objects.equals(this.lower, prediction.lower) &&
 				Objects.equals(this.upper, prediction.upper) &&
-				Objects.equals(this.predictionMidpoint, prediction.predictionMidpoint);
+				Objects.equals(this.predictionMidpoint, prediction.predictionMidpoint)&&
+				Objects.equals(this.modelName, prediction.modelName);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(smiles, lower, upper, predictionMidpoint);
+		return Objects.hash(smiles, lower, upper, predictionMidpoint, modelName);
 	}
 
 
@@ -81,6 +88,7 @@ public class RegressionResult {
 		resp.put("upper", Utils.roundTo3digits(upper));
 		resp.put("predictionMidpoint", Utils.roundTo3digits(predictionMidpoint));
 		resp.put("confidence", confidence);
+		resp.put("modelName", modelName);
 		return resp.toJSONString();
 	}
 

@@ -111,7 +111,7 @@ public class Predict {
 		try {
 			CPRegressionResult res = model.predict(molToPredict, confidence);
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
-			return Response.status(200).entity( new io.swagger.model.RegressionResult(smiles,res,confidence).toString() ).build();
+			return Response.status(200).entity( new io.swagger.model.RegressionResult(smiles,res,confidence, model.getModelName()).toString() ).build();
 		} catch (IllegalAccessException | CDKException e) {
 			logger.debug("Failed predicting smiles=" + smiles, e);
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();

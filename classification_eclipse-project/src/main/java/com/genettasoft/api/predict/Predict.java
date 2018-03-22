@@ -122,7 +122,7 @@ public class Predict {
 				pvalues.add(new PValueMapping(entry.getKey(), entry.getValue()));
 			}
 
-			return Response.status(200).entity( new io.swagger.model.ClassificationResult(pvalues, smiles).toString() ).build();
+			return Response.status(200).entity( new io.swagger.model.ClassificationResult(pvalues, smiles, model.getModelName()).toString() ).build();
 		} catch (IllegalAccessException | CDKException e) {
 			CDKMutexLock.releaseLock();
 			logger.debug("Failed predicting smiles=" + smiles, e);

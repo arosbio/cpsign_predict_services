@@ -37,10 +37,16 @@ public class ClassificationResult   {
 	@JsonProperty("prediction")
 	@ApiModelProperty(required=true, value = "Predicted p-values for each label")
 	private List<PValueMapping> prediction;
+	
+	@JsonProperty("modelName")
+	@ApiModelProperty(required=true, value="Name of the model used for the prediction")
+	@NotNull
+	private final String modelName;
 
-	public ClassificationResult(List<PValueMapping> pvalues, String smiles) {
+	public ClassificationResult(List<PValueMapping> pvalues, String smiles, String modelName) {
 		this.smiles = smiles;
 		this.prediction = pvalues;
+		this.modelName = modelName;
 	}
 
 	@Override
@@ -53,12 +59,13 @@ public class ClassificationResult   {
 		}
 		ClassificationResult classification = (ClassificationResult) o;
 		return Objects.equals(this.smiles, classification.smiles) &&
-				Objects.equals(this.prediction, classification.prediction);
+				Objects.equals(this.prediction, classification.prediction) &&
+				Objects.equals(this.modelName, classification.modelName);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(smiles, prediction);
+		return Objects.hash(smiles, prediction, modelName);
 	}
 
 
@@ -69,6 +76,7 @@ public class ClassificationResult   {
 
 		jsonResponse.put("smiles", smiles);
 		jsonResponse.put("prediction", prediction);
+		jsonResponse.put("modelName", modelName);
 
 		return jsonResponse.toJSONString();
 	}
