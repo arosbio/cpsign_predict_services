@@ -52,8 +52,8 @@ public class PredictApi  {
 	@GET
 	@Consumes({ "multipart/form-data" })
 	@Produces({ "application/json" })
-	@ApiOperation(value = "Make a prediction on the given SMILES", 
-	notes = "Predict a given SMILES to get the p-values for the given class, in JSON format", 
+	@ApiOperation(value = "Make a prediction on a given molecule", 
+	notes = "Predict a given molecule in SMILES, MDL v2000 or MDL v3000 format, in JSON format", 
 	response = Void.class, 
 	tags={"Predict"})
 	@ApiResponses(value = { 
@@ -65,11 +65,16 @@ public class PredictApi  {
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
 	public Response predictGet(
-			@ApiParam(value = "Compound structure notation using SMILES notation", required=true)
-			@DefaultValue("CCCCC=O") @QueryParam("smiles") String smiles,
+			@ApiParam(value = "(Depricated) Compound structure notation using SMILES notation", required=false)
+			@QueryParam("smiles") String smiles,
+			@ApiParam(value = "Compound structure notation using SMILES or MDL format", required=false)
+			@DefaultValue("CCCCC=O") @QueryParam("molecule") String molecule,
 			@Context SecurityContext securityContext)
 					throws NotFoundException {
-		return delegate.predictPost(smiles,securityContext);
+		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
+			return delegate.predictPost(smiles,securityContext);
+		else 
+			return delegate.predictPost(molecule, securityContext);
 	}
 
 
@@ -90,8 +95,10 @@ public class PredictApi  {
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
 	public Response predictImageGet( 
-			@ApiParam(value = "Compound structure notation using SMILES notation", defaultValue="CCCCC=O")
+			@ApiParam(value = "(Depricated) Compound structure notation using SMILES notation", required=false)
 			@QueryParam("smiles") String smiles,
+			@ApiParam(value = "Compound structure notation using SMILES or MDL format", required=false)
+			@DefaultValue("CCCCC=O") @QueryParam("molecule") String molecule,
 			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
 			@ApiParam(value = "Image height (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
@@ -101,7 +108,9 @@ public class PredictApi  {
 			@ApiParam(value = "Add title to the image (using the model name)")
 			@DefaultValue("false") @QueryParam("addTitle") boolean addTitle,
 			@Context SecurityContext securityContext ) {
-
-		return delegate.predictImagePost(smiles, imageWidth, imageHeight, addPvals, addTitle, securityContext);
+		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
+			return delegate.predictImagePost(smiles, imageWidth, imageHeight, addPvals, addTitle, securityContext);
+		else
+			return delegate.predictImagePost(molecule, imageWidth, imageHeight, addPvals, addTitle, securityContext);
 	}
 }
