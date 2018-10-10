@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
+import org.javatuples.Pair;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
@@ -92,50 +93,47 @@ public class Predict {
 		}
 	}
 
-	public static Response doPredict(String smiles) {
-		logger.debug("got a prediction task, smiles="+smiles);
+	public static Response doPredict(String molecule) {
+		logger.debug("got a prediction task");
 
 		if(serverErrorResponse != null)
 			return serverErrorResponse;
 
-		if (smiles==null || smiles.isEmpty()){
-			logger.debug("Missing arguments 'smiles'");
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "missing argument", Arrays.asList("smiles")).toString() ).build();
+		if (molecule==null || molecule.isEmpty()){
+			logger.debug("Missing arguments 'molecule'");
+			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).build();
 		}
 
-		IAtomContainer molToPredict=null;
-		CDKMutexLock.requireLock();
-		try{
-			molToPredict = CPSignFactory.parseSMILES(smiles);
-		} catch(IllegalArgumentException e){
-			logger.debug("Got exception when parsing smiles: " + e.getMessage() + "\nreturning error-msg and stopping", e);
-			CDKMutexLock.releaseLock();
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Invalid query SMILES '" + smiles + "'", Arrays.asList("smiles")).toString() ).build();
-		}
+		// try to parse an IAtomContainer - or fail
+		Pair<IAtomContainer, Response> molOrFail = ChemUtils.parseMolecule(molecule);
+		if (molOrFail.getValue1() != null)
+			return molOrFail.getValue1();
+
+		IAtomContainer molToPredict=molOrFail.getValue0();
 
 		try {
 			Map<String, Double> res = model.predictMondrian(molToPredict);
 			CDKMutexLock.releaseLock();
-			logger.debug("Successfully finished predicting smiles="+smiles+", pvalues=" + res );
+			logger.debug("Successfully finished predicting smiles="+molecule+", pvalues=" + res );
 			List<PValueMapping> pvalues = new ArrayList<>();
 			for (Entry<String, Double> entry : res.entrySet()) {
 				pvalues.add(new PValueMapping(entry.getKey(), entry.getValue()));
 			}
 
-			return Response.status(200).entity( new io.swagger.model.ClassificationResult(pvalues, smiles, model.getModelName()).toString() ).build();
+			return Response.status(200).entity( new io.swagger.model.ClassificationResult(pvalues, molecule, model.getModelName()).toString() ).build();
 		} catch (IllegalAccessException | CDKException e) {
 			CDKMutexLock.releaseLock();
-			logger.debug("Failed predicting smiles=" + smiles, e);
+			logger.debug("Failed predicting smiles=" + molecule, e);
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
 		}
 	}
 
-	public static Response doPredictImage(String smiles, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
+	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
 		if(serverErrorResponse != null)
 			return serverErrorResponse;
-		
+
 		if(imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
-			logger.warn("Failing execution due to too small image required");
+			logger.warn("Failing execution due to too small image requested");
 			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and with must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
 		}
 
@@ -143,9 +141,9 @@ public class Predict {
 			logger.warn("Failing execution due to too large image requested");
 			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
 		}
-		
+
 		// Return empty img if no smiles sent
-		if (smiles==null || smiles.isEmpty()){
+		if (molecule==null || molecule.isEmpty()){
 			// return an empty img
 			try{
 				BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
@@ -163,20 +161,18 @@ public class Predict {
 				return Response.status(500).entity(new io.swagger.model.Error(500, "Server error").toJSON()).build();
 			}
 		}
-		
-		IAtomContainer molToPredict=null;
-		CDKMutexLock.requireLock();
-		try {
-			molToPredict = CPSignFactory.parseSMILES(smiles);
-		} catch(IllegalArgumentException e){
-			logger.debug("Got exception when parsing smiles: " + e.getMessage() + "\nreturning error-msg and stopping", e);
-			CDKMutexLock.releaseLock();
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Invalid query SMILES '" + smiles + "'", Arrays.asList("smiles")).toString() ).build();
-		}
+
+		// try to parse an IAtomContainer - or fail
+		Pair<IAtomContainer, Response> molOrFail = ChemUtils.parseMolecule(molecule);
+		if (molOrFail.getValue1() != null)
+			return molOrFail.getValue1();
+
+		IAtomContainer molToPredict=molOrFail.getValue0();
 
 		SignificantSignature signSign = null;
 
 		try {
+			CDKMutexLock.requireLock(); // require the lock again!
 			signSign = model.predictSignificantSignature(molToPredict);
 
 			// Create the depiction
@@ -184,7 +180,7 @@ public class Predict {
 			depictor.setImageHeight(imageHeight);
 			depictor.setImageWidth(imageWidth);
 			GradientFigureBuilder builder = new GradientFigureBuilder(depictor);
-			
+
 			// Add title if specified
 			if (addTitle) {
 				builder.addFieldOverImg(new TitleField(model.getModelName()));
@@ -204,10 +200,11 @@ public class Predict {
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (IllegalAccessException | CDKException | IOException e) {
-			logger.debug("Failed predicting smiles=" + smiles, e);
+			logger.debug("Failed predicting molecule=" + molecule, e);
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
 		} finally {
 			CDKMutexLock.releaseLock();
 		}
 	}
+
 }
