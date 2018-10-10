@@ -273,7 +273,7 @@
 		</repository>
 	</repositories>
 	<properties>
-		<cpsign.version>0.6.9</cpsign.version>
+		<cpsign.version>0.6.16</cpsign.version>
 		<java.version>1.7</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
