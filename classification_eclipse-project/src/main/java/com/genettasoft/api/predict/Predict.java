@@ -110,17 +110,26 @@ public class Predict {
 			return molOrFail.getValue1();
 
 		IAtomContainer molToPredict=molOrFail.getValue0();
+		
+		// Generate SMILES to have in the response
+		String smiles = null;
+		try {
+			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
+		} catch (Exception e) {
+			logger.debug("Failed creating smiles from IAtomContainer",e);
+			return Response.status(500).entity( new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() ).build();
+		}
 
 		try {
 			Map<String, Double> res = model.predictMondrian(molToPredict);
 			CDKMutexLock.releaseLock();
-			logger.debug("Successfully finished predicting smiles="+molecule+", pvalues=" + res );
+			logger.debug("Successfully finished predicting smiles="+smiles+", pvalues=" + res );
 			List<PValueMapping> pvalues = new ArrayList<>();
 			for (Entry<String, Double> entry : res.entrySet()) {
 				pvalues.add(new PValueMapping(entry.getKey(), entry.getValue()));
 			}
 
-			return Response.status(200).entity( new io.swagger.model.ClassificationResult(pvalues, molecule, model.getModelName()).toString() ).build();
+			return Response.status(200).entity( new io.swagger.model.ClassificationResult(pvalues, smiles, model.getModelName()).toString() ).build();
 		} catch (IllegalAccessException | CDKException e) {
 			CDKMutexLock.releaseLock();
 			logger.debug("Failed predicting smiles=" + molecule, e);

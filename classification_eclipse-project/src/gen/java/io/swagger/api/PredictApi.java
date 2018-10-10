@@ -53,7 +53,7 @@ public class PredictApi  {
 	@Consumes({ "multipart/form-data" })
 	@Produces({ "application/json" })
 	@ApiOperation(value = "Make a prediction on a given molecule", 
-	notes = "Predict a given molecule in SMILES, MDL v2000 or MDL v3000 format, in JSON format", 
+	notes = "Predict a given molecule in SMILES, MDL v2000 or MDL v3000 format.", 
 	response = Void.class, 
 	tags={"Predict"})
 	@ApiResponses(value = { 
@@ -82,8 +82,8 @@ public class PredictApi  {
 	@GET
 	@Consumes({ "multipart/form-data" })
 	@Produces("image/png")
-	@ApiOperation(value = "Make a prediction image from the given SMILES", 
-	notes = "Predict a given SMILES to get a prediction image",
+	@ApiOperation(value = "Make a prediction image for the given molecule", 
+	notes = "Predict a given molecule to get a prediction image, accepts SMILES, MDL v2000 or MDL v3000 format.",
 	response = Void.class, 
 	tags={"Predict"})
 	@ApiResponses(value = { 

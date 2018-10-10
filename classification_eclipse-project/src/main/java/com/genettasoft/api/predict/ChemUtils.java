@@ -12,6 +12,8 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.MDLV3000Reader;
 import org.openscience.cdk.silent.AtomContainer;
+import org.openscience.cdk.smiles.SmiFlavor;
+import org.openscience.cdk.smiles.SmilesGenerator;
 import org.slf4j.Logger;
 
 import com.genettasoft.modeling.CPSignFactory;
@@ -19,6 +21,7 @@ import com.genettasoft.modeling.CPSignFactory;
 public class ChemUtils {
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(ChemUtils.class);
+	private static SmilesGenerator sg = new SmilesGenerator(SmiFlavor.Canonical);
 
 	public static Pair<IAtomContainer, Response> parseMolecule(String moleculeData) {
 
@@ -66,6 +69,12 @@ public class ChemUtils {
 			CDKMutexLock.releaseLock();
 		}
 
+	}
+	
+	public static synchronized String getAsSmiles(IAtomContainer mol, String originalMol) throws CDKException {
+		if (originalMol.split("\n").length == 1)
+			return originalMol;
+		return sg.create(mol);
 	}
 
 }
