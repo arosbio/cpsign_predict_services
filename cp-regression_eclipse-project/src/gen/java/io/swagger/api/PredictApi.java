@@ -56,7 +56,7 @@ public class PredictApi  {
 	@Consumes({ "multipart/form-data" })
 	@Produces({ "application/json" })
 	@ApiOperation(value = "Make a prediction on a given molecule", 
-	notes = "Predict a given molecule in SMILES, MDL v2000 or MDL v3000 format.", 
+	notes = "Predict a given molecule in SMILES, MDL v2000 or MDL v3000 format. In case a MDL is sent, it must be properly URL-encoded in UTF-8. You can use for instance https://www.urlencoder.org/ to encode your file.", 
 	response = Void.class, 
 	tags={"Predict"})
 	@ApiResponses(value = { 
@@ -88,7 +88,7 @@ public class PredictApi  {
 	@Consumes({ "multipart/form-data" })
 	@Produces("image/png")
 	@ApiOperation(value = "Make a prediction image for the given molecule", 
-	notes = "Predict a given molecule to get a prediction image, accepts SMILES, MDL v2000 or MDL v3000 format.",
+	notes = "Predict a given molecule to get a prediction image, accepts SMILES, MDL v2000 or MDL v3000 format. In case a MDL is sent, it must be properly URL-encoded in UTF-8. You can use for instance https://www.urlencoder.org/ to encode your file.",
 	response = Void.class, 
 	tags={"Predict"})
 	@ApiResponses(value = { 

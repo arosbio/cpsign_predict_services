@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
@@ -41,6 +42,7 @@ public class Predict {
 
 	private static final int MIN_IMAGE_SIZE = 50;
 	private static final int MAX_IMAGE_SIZE = 5000;
+	private static final String URL_ENCODING = "UTF-8";
 
 	static {
 
@@ -97,6 +99,14 @@ public class Predict {
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
 			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).build();
+		}
+
+		// Clean the molecule-string from URL encoding
+		try {
+			if (molecule != null && !molecule.isEmpty())
+				molecule = URLDecoder.decode(molecule, URL_ENCODING);
+		} catch (Exception e) {
+			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
 		}
 
 		// try to parse an IAtomContainer - or fail
@@ -166,6 +176,13 @@ public class Predict {
 				logger.info("Failed returning empty image for empty smiles");
 				return Response.status(500).entity(new io.swagger.model.Error(500, "Server error").toJSON()).build();
 			}
+		}
+
+		// Clean the molecule-string from URL encoding
+		try {
+				molecule = URLDecoder.decode(molecule, URL_ENCODING);
+		} catch (Exception e) {
+			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
 		}
 
 		// try to parse an IAtomContainer - or fail
