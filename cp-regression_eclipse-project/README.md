@@ -27,4 +27,4 @@ swagger-ui will be directed to that host and not localhost!
 https://devcenter.heroku.com/articles/local-maven-dependencies
 
 cd into the libs directory, run command (change to proper file path):
-mvn deploy:deploy-file -Durl=file:///Users/staffan/git/cpsign.predictserver/classification_eclipse-project/repo/ -Dfile=cpsign-0.6.9.jar -DgroupId=com.genettasoft -DartifactId=cpsign -Dpackaging=jar -Dversion=0.6.9
+mvn deploy:deploy-file -Durl=file:///Users/staffan/git/cpsign.predictserver/cp-regression_eclipse-project/repo/ -Dfile=cpsign-0.6.16.jar -DgroupId=com.genettasoft -DartifactId=cpsign -Dpackaging=jar -Dversion=0.6.16
