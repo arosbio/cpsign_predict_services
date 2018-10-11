@@ -55,8 +55,8 @@ public class PredictApi  {
 	@GET
 	@Consumes({ "multipart/form-data" })
 	@Produces({ "application/json" })
-	@ApiOperation(value = "Make a prediction on the given SMILES", 
-	notes = "Predict a given SMILES to get the interval for the regression value, in JSON format", 
+	@ApiOperation(value = "Make a prediction on a given molecule", 
+	notes = "Predict a given molecule in SMILES, MDL v2000 or MDL v3000 format.", 
 	response = Void.class, 
 	tags={"Predict"})
 	@ApiResponses(value = { 
@@ -68,13 +68,18 @@ public class PredictApi  {
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
 	public Response predictGet(
-			@ApiParam(value = "Compound structure notation using SMILES notation", required=true)
-			@DefaultValue("CCCCC=O") @QueryParam("smiles") String smiles,
+			@ApiParam(value = "(Depricated) Compound structure notation using SMILES notation", required=false)
+			@QueryParam("smiles") String smiles,
+			@ApiParam(value = "Compound structure notation using SMILES or MDL format", required=false)
+			@DefaultValue("CCCCC=O") @QueryParam("molecule") String molecule,
 			@ApiParam(value = "The desired confidence of the prediction", allowableValues="range(0,1)")
 			@DefaultValue("0.8") @QueryParam("confidence") double confidence,
 			@Context SecurityContext securityContext)
 					throws NotFoundException {
-		return delegate.predictGet(smiles,confidence,securityContext);
+		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
+			return delegate.predictGet(smiles,confidence,securityContext);
+		else
+			return delegate.predictGet(molecule,confidence,securityContext);
 	}
 
 
@@ -82,8 +87,8 @@ public class PredictApi  {
 	@GET
 	@Consumes({ "multipart/form-data" })
 	@Produces("image/png")
-	@ApiOperation(value = "Make a prediction image from the given SMILES", 
-	notes = "Predict a given SMILES to get a prediction image",
+	@ApiOperation(value = "Make a prediction image for the given molecule", 
+	notes = "Predict a given molecule to get a prediction image, accepts SMILES, MDL v2000 or MDL v3000 format.",
 	response = Void.class, 
 	tags={"Predict"})
 	@ApiResponses(value = { 
@@ -95,8 +100,10 @@ public class PredictApi  {
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
 	public Response predictImageGet( 
-			@ApiParam(value = "Compound structure notation using SMILES notation", defaultValue="CCCCC=O")
+			@ApiParam(value = "(Depricated) Compound structure notation using SMILES notation", required=false)
 			@QueryParam("smiles") String smiles,
+			@ApiParam(value = "Compound structure notation using SMILES or MDL format", required=false)
+			@DefaultValue("CCCCC=O") @QueryParam("molecule") String molecule,
 			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
 			@ApiParam(value = "Image height (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
@@ -107,6 +114,10 @@ public class PredictApi  {
 			@DefaultValue("false") @QueryParam("addTitle") boolean addTitle,
 			@Context SecurityContext securityContext ) {
 		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
-		return delegate.predictImageGet(smiles, imageWidth, imageHeight, confidence, addTitle, securityContext);
+		
+		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
+			return delegate.predictImageGet(smiles, imageWidth, imageHeight, confidence, addTitle, securityContext);
+		else
+			return delegate.predictImageGet(molecule, imageWidth, imageHeight, confidence, addTitle, securityContext);
 	}
 }

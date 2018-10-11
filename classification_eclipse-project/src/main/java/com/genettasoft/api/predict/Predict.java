@@ -115,6 +115,7 @@ public class Predict {
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
+			logger.debug("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed creating smiles from IAtomContainer",e);
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() ).build();
@@ -138,7 +139,7 @@ public class Predict {
 	}
 
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
-		if(serverErrorResponse != null)
+		if (serverErrorResponse != null)
 			return serverErrorResponse;
 
 		if(imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
