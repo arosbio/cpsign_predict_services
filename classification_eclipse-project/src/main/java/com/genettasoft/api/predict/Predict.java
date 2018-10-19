@@ -36,6 +36,8 @@ import com.genettasoft.modeling.cheminf.SignaturesCPClassification;
 import com.genettasoft.modeling.cheminf.SignificantSignature;
 import com.genettasoft.modeling.io.bndTools.BNDLoader;
 
+import io.swagger.model.BadRequestError;
+import io.swagger.model.ClassificationResult;
 import io.swagger.model.PValueMapping;
 
 public class Predict {
@@ -103,7 +105,7 @@ public class Predict {
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).build();
+			return Response.status(400).entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).build();
 		}
 
 		// Clean the molecule-string from URL encoding
@@ -111,13 +113,21 @@ public class Predict {
 			if (molecule != null && !molecule.isEmpty())
 				molecule = URLDecoder.decode(molecule, URL_ENCODING);
 		} catch (Exception e) {
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
+			return Response.status(400).entity( 
+					new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
 		}
 
 		// try to parse an IAtomContainer - or fail
-		Pair<IAtomContainer, Response> molOrFail = ChemUtils.parseMolecule(molecule);
-		if (molOrFail.getValue1() != null)
-			return molOrFail.getValue1();
+		Pair<IAtomContainer, Response> molOrFail = null;
+		try {
+			molOrFail = ChemUtils.parseMolecule(molecule);
+			if (molOrFail.getValue1() != null)
+				return molOrFail.getValue1();
+		} catch (Exception | Error e) {
+			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
+			return Response.status(400).entity(
+					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+		}
 
 		IAtomContainer molToPredict=molOrFail.getValue0();
 
@@ -127,8 +137,10 @@ public class Predict {
 			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
 			logger.debug("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
-			logger.debug("Failed creating smiles from IAtomContainer",e);
-			return Response.status(500).entity( new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() ).build();
+			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
+			return Response.status(500).entity( 
+					new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() )
+					.build();
 		}
 
 		try {
@@ -140,26 +152,30 @@ public class Predict {
 				pvalues.add(new PValueMapping(entry.getKey(), entry.getValue()));
 			}
 
-			return Response.status(200).entity( new io.swagger.model.ClassificationResult(pvalues, smiles, model.getModelName()).toString() ).build();
+			return Response.status(200).entity( new ClassificationResult(pvalues, smiles, model.getModelName()).toString() ).build();
 		} catch (IllegalAccessException | CDKException e) {
 			CDKMutexLock.releaseLock();
-			logger.debug("Failed predicting smiles=" + molecule, e);
+			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
 		}
 	}
 
+
+
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
+		logger.info("got a predict-image task, imageWidth="+imageWidth+", imageHeight="+imageHeight);
+
 		if (serverErrorResponse != null)
 			return serverErrorResponse;
 
 		if(imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
 			logger.warn("Failing execution due to too small image requested");
-			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and with must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+			return Response.status(400).entity(new BadRequestError(400,"image height and width must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
 		}
 
 		if (imageWidth > MAX_IMAGE_SIZE || imageHeight> MAX_IMAGE_SIZE){
 			logger.warn("Failing execution due to too large image requested");
-			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+			return Response.status(400).entity(new BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
 		}
 
 		// Return empty img if no smiles sent
@@ -186,7 +202,7 @@ public class Predict {
 		try {
 			molecule = URLDecoder.decode(molecule, URL_ENCODING);
 		} catch (Exception e) {
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
+			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
 		}
 
 		// try to parse an IAtomContainer - or fail
@@ -195,6 +211,16 @@ public class Predict {
 			return molOrFail.getValue1();
 
 		IAtomContainer molToPredict=molOrFail.getValue0();
+
+
+		// Get smiles representation of molecule
+		String smiles = null;
+		try {
+			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
+		} catch (Exception e) {
+			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
+			return Response.status(400).entity(new BadRequestError(400, "Could not generate SMILES for molecule",Arrays.asList("molecule"))).build();
+		}
 
 		SignificantSignature signSign = null;
 
@@ -227,7 +253,7 @@ public class Predict {
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (IllegalAccessException | CDKException | IOException e) {
-			logger.debug("Failed predicting molecule=" + molecule, e);
+			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
 		} finally {
 			CDKMutexLock.releaseLock();

@@ -65,10 +65,14 @@ public class PredictApi  {
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
 	public Response predictGet(
-			@ApiParam(value = "(Depricated) Compound structure notation using SMILES notation", required=false)
+			@ApiParam(value = "Compound structure notation using SMILES or MDL format", 
+			required=false,
+			defaultValue="CCCCC=O")
+			@QueryParam("molecule") String molecule,
+			
+			@ApiParam(value = "**(Depricated)** Compound structure notation using SMILES notation", required=false)
 			@QueryParam("smiles") String smiles,
-			@ApiParam(value = "Compound structure notation using SMILES or MDL format", required=false)
-			@DefaultValue("CCCCC=O") @QueryParam("molecule") String molecule,
+			
 			@Context SecurityContext securityContext)
 					throws NotFoundException {
 		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
@@ -81,7 +85,7 @@ public class PredictApi  {
 	@Path("/predictImage")
 	@GET
 	@Consumes({ "multipart/form-data" })
-	@Produces("image/png")
+	@Produces({"image/png", "application/json"})
 	@ApiOperation(value = "Make a prediction image for the given molecule", 
 	notes = "Predict a given molecule to get a prediction image, accepts SMILES, MDL v2000 or MDL v3000 format. In case a MDL is sent, it must be properly URL-encoded in UTF-8. You can use for instance https://www.urlencoder.org/ to encode your file.",
 	response = Void.class, 
@@ -95,18 +99,30 @@ public class PredictApi  {
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
 	public Response predictImageGet( 
-			@ApiParam(value = "(Depricated) Compound structure notation using SMILES notation", required=false)
-			@QueryParam("smiles") String smiles,
-			@ApiParam(value = "Compound structure notation using SMILES or MDL format", required=false)
-			@DefaultValue("CCCCC=O") @QueryParam("molecule") String molecule,
+			@ApiParam(value = "Compound structure notation using SMILES or MDL format", 
+			required=false,
+			defaultValue="CCCCC=O")
+			@QueryParam("molecule") String molecule, // MOLECULE
+			
+			@ApiParam(value = "**(Depricated)** Compound structure notation using SMILES notation", required=false)
+			@QueryParam("smiles") String smiles, // SMILES - DEPRECATED
+			
 			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
-			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
+			@DefaultValue("600") @QueryParam("imageWidth") 
+			int imageWidth,
+			
 			@ApiParam(value = "Image height (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
-			@DefaultValue("600") @QueryParam("imageHeight") int imageHeight,
+			@DefaultValue("600") @QueryParam("imageHeight") 
+			int imageHeight,
+			
 			@ApiParam(value = "Write p-values in figure")
-			@DefaultValue("false") @QueryParam("addPvals") boolean addPvals,
+			@DefaultValue("false") @QueryParam("addPvals") 
+			boolean addPvals,
+			
 			@ApiParam(value = "Add title to the image (using the model name)")
-			@DefaultValue("false") @QueryParam("addTitle") boolean addTitle,
+			@DefaultValue("false") @QueryParam("addTitle") 
+			boolean addTitle,
+			
 			@Context SecurityContext securityContext ) {
 		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
 			return delegate.predictImagePost(smiles, imageWidth, imageHeight, addPvals, addTitle, securityContext);
