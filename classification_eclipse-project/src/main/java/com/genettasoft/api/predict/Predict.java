@@ -110,8 +110,7 @@ public class Predict {
 
 		// Clean the molecule-string from URL encoding
 		try {
-			if (molecule != null && !molecule.isEmpty())
-				molecule = URLDecoder.decode(molecule, URL_ENCODING);
+			molecule = URLDecoder.decode(molecule, URL_ENCODING);
 		} catch (Exception e) {
 			return Response.status(400).entity( 
 					new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
@@ -128,7 +127,6 @@ public class Predict {
 			return Response.status(400).entity(
 					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
 		}
-
 		IAtomContainer molToPredict=molOrFail.getValue0();
 
 		// Generate SMILES to have in the response
@@ -142,10 +140,12 @@ public class Predict {
 					new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() )
 					.build();
 		}
+		logger.info("prediction-task for smiles=" + smiles);
 
+		CDKMutexLock.requireLock();
 		try {
 			Map<String, Double> res = model.predictMondrian(molToPredict);
-			CDKMutexLock.releaseLock();
+			
 			logger.debug("Successfully finished predicting smiles="+smiles+", pvalues=" + res );
 			List<PValueMapping> pvalues = new ArrayList<>();
 			for (Entry<String, Double> entry : res.entrySet()) {
@@ -153,10 +153,11 @@ public class Predict {
 			}
 
 			return Response.status(200).entity( new ClassificationResult(pvalues, smiles, model.getModelName()).toString() ).build();
-		} catch (IllegalAccessException | CDKException e) {
-			CDKMutexLock.releaseLock();
+		} catch (Exception e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
+		} finally {
+			CDKMutexLock.releaseLock();
 		}
 	}
 
@@ -206,9 +207,16 @@ public class Predict {
 		}
 
 		// try to parse an IAtomContainer - or fail
-		Pair<IAtomContainer, Response> molOrFail = ChemUtils.parseMolecule(molecule);
-		if (molOrFail.getValue1() != null)
-			return molOrFail.getValue1();
+		Pair<IAtomContainer, Response> molOrFail = null;
+		try {
+			molOrFail = ChemUtils.parseMolecule(molecule);
+			if (molOrFail.getValue1() != null)
+				return molOrFail.getValue1();
+		} catch (Exception | Error e) {
+			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
+			return Response.status(400).entity(
+					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+		}
 
 		IAtomContainer molToPredict=molOrFail.getValue0();
 
@@ -222,8 +230,8 @@ public class Predict {
 			return Response.status(400).entity(new BadRequestError(400, "Could not generate SMILES for molecule",Arrays.asList("molecule"))).build();
 		}
 
+		// Make prediction + image
 		SignificantSignature signSign = null;
-
 		try {
 			CDKMutexLock.requireLock(); // require the lock again!
 			signSign = model.predictSignificantSignature(molToPredict);

@@ -17,7 +17,6 @@ import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
 import org.javatuples.Pair;
-import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
@@ -32,6 +31,8 @@ import com.genettasoft.modeling.cheminf.SignaturesCPRegression;
 import com.genettasoft.modeling.cheminf.SignificantSignature;
 import com.genettasoft.modeling.io.bndTools.BNDLoader;
 import com.genettasoft.modeling.ml.cp.CPRegressionResult;
+
+import io.swagger.model.BadRequestError;
 
 public class Predict {
 
@@ -98,21 +99,27 @@ public class Predict {
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).build();
+			return Response.status(400).entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).build();
 		}
 
 		// Clean the molecule-string from URL encoding
 		try {
-			if (molecule != null && !molecule.isEmpty())
-				molecule = URLDecoder.decode(molecule, URL_ENCODING);
+			molecule = URLDecoder.decode(molecule, URL_ENCODING);
 		} catch (Exception e) {
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
+			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
 		}
 
 		// try to parse an IAtomContainer - or fail
-		Pair<IAtomContainer, Response> molOrFail = ChemUtils.parseMolecule(molecule);
-		if (molOrFail.getValue1() != null)
-			return molOrFail.getValue1();
+		Pair<IAtomContainer, Response> molOrFail = null;
+		try {
+			molOrFail = ChemUtils.parseMolecule(molecule);
+			if (molOrFail.getValue1() != null)
+				return molOrFail.getValue1();
+		} catch (Exception | Error e) {
+			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
+			return Response.status(400).entity(
+					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+		}
 
 		IAtomContainer molToPredict=molOrFail.getValue0();
 
@@ -120,18 +127,22 @@ public class Predict {
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
+			logger.info("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
-			logger.debug("Failed creating smiles from IAtomContainer",e);
-			return Response.status(500).entity( new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() ).build();
+			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
+			return Response.status(500).entity( 
+					new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() )
+					.build();
 		}
-		logger.debug("prediction-task for smiles=" + smiles);
 
+		// Make prediction
+		CDKMutexLock.requireLock();
 		try {
 			CPRegressionResult res = model.predict(molToPredict, confidence);
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
 			return Response.status(200).entity( new io.swagger.model.RegressionResult(smiles,res,confidence, model.getModelName()).toString() ).build();
-		} catch (IllegalAccessException | CDKException e) {
-			logger.debug("Failed predicting smiles=" + smiles, e);
+		} catch (Exception | Error e) {
+			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
 		} finally{
 			CDKMutexLock.releaseLock();
@@ -145,17 +156,17 @@ public class Predict {
 
 		if (confidence != null && (confidence < 0 || confidence > 1)){
 			logger.warn("invalid argument confidence=" + confidence);
-			return Response.status(400).entity(new io.swagger.model.BadRequestError(400, "invalid argument", Arrays.asList("confidence")).toString()).build();
+			return Response.status(400).entity(new BadRequestError(400, "invalid argument", Arrays.asList("confidence")).toString()).build();
 		}
 
 		if (imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
 			logger.warn("Failing execution due to too small image required");
-			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and with must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+			return Response.status(400).entity(new BadRequestError(400,"image height and width must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
 		}
 
 		if (imageWidth > MAX_IMAGE_SIZE || imageHeight> MAX_IMAGE_SIZE){
 			logger.warn("Failing execution due to too large image requested");
-			return Response.status(400).entity(new io.swagger.model.BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+			return Response.status(400).entity(new BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
 		}
 
 		// Return empty img if no smiles sent
@@ -172,7 +183,7 @@ public class Predict {
 				byte[] imageData = baos.toByteArray();
 
 				return Response.ok( new ByteArrayInputStream(imageData) ).build();
-			} catch (IOException e) {
+			} catch (Exception e) {
 				logger.info("Failed returning empty image for empty smiles");
 				return Response.status(500).entity(new io.swagger.model.Error(500, "Server error").toJSON()).build();
 			}
@@ -180,20 +191,39 @@ public class Predict {
 
 		// Clean the molecule-string from URL encoding
 		try {
-				molecule = URLDecoder.decode(molecule, URL_ENCODING);
+			molecule = URLDecoder.decode(molecule, URL_ENCODING);
 		} catch (Exception e) {
-			return Response.status(400).entity( new io.swagger.model.BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
+			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
 		}
 
 		// try to parse an IAtomContainer - or fail
-		Pair<IAtomContainer, Response> molOrFail = ChemUtils.parseMolecule(molecule);
-		if (molOrFail.getValue1() != null)
-			return molOrFail.getValue1();
-
+		Pair<IAtomContainer, Response> molOrFail = null;
+		try {
+			molOrFail = ChemUtils.parseMolecule(molecule);
+			if (molOrFail.getValue1() != null)
+				return molOrFail.getValue1();
+		} catch (Exception | Error e) {
+			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
+			return Response.status(400).entity(
+					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+		}
 		IAtomContainer molToPredict=molOrFail.getValue0();
 
-		SignificantSignature signSign = null;
+		// Generate SMILES to have in the response
+		String smiles = null;
+		try {
+			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
+			logger.info("prediction-task for smiles=" + smiles);
+		} catch (Exception e) {
+			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
+			return Response.status(500).entity( 
+					new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() )
+					.build();
+		}
 
+		// Make prediction + generate image
+		SignificantSignature signSign = null;
+		CDKMutexLock.requireLock();
 		try {
 			signSign = model.predictSignificantSignature(molToPredict);
 
@@ -221,8 +251,8 @@ public class Predict {
 			byte[] imageData = baos.toByteArray();
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
-		} catch (IllegalAccessException | CDKException | IOException e) {
-			logger.debug("Failed predicting smiles=" + molecule, e);
+		} catch (Exception | Error e) {
+			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
 		} finally {
 			CDKMutexLock.releaseLock();
