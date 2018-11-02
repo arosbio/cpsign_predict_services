@@ -53,6 +53,11 @@ public class Predict {
 
 	static {
 
+		final String license_file =
+				System.getenv("LICENSE_FILE")!=null?System.getenv("LICENSE_FILE"):"/opt/app-root/modeldata/license.license";
+		final String model_file =
+				System.getenv("MODEL_FILE")!=null?System.getenv("MODEL_FILE"):"/opt/app-root/modeldata/model.jar";
+
 		// Get the root logger for cpsign
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.genettasoft.modeling");
 		if(cpsingLogger instanceof ch.qos.logback.classic.Logger) {
@@ -70,7 +75,7 @@ public class Predict {
 
 		// Instantiate the factory 
 		try{
-			factory = new CPSignFactory( new FileInputStream( new File("/opt/app-root/modeldata/license.license") ) );
+			factory = new CPSignFactory( new FileInputStream( new File(license_file) ) );
 			logger.info("Initiated the CPSignFactory");
 		} catch (RuntimeException | IOException re){
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
@@ -80,7 +85,7 @@ public class Predict {
 		if (serverErrorResponse == null) {
 			try {
 				logger.debug("Trying to load in the model");
-				URI modelURI = new File("/opt/app-root/modeldata/model.jar").toURI();
+				URI modelURI = new File(model_file).toURI();
 				if (modelURI == null)
 					throw new IOException("did not locate the model file");
 				if ( factory.supportEncryption() ) {
