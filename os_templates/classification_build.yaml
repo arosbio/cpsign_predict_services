@@ -42,6 +42,3 @@ objects:
         triggers:
           - type: ConfigChange
 parameters:
-  - name: GIT_SOURCESECRET
-    description: Secret containing a private key to be used to access git repo
-

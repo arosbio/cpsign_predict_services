@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Template
 metadata:
     name: regression-build-template
-    annotations: 
+    annotations:
         description: "Build the regression image"
         tags: "cpsign, regression"
 labels:
@@ -26,8 +26,6 @@ objects:
                 uri: 'ssh://git@bitbucket.org/genettasoft/cpsign.predictserver.git'
                 ref: master
             contextDir: cp-regression_eclipse-project
-            sourceSecret:
-                name: ${GIT_SOURCESECRET}
         strategy:
             type: Source
             sourceStrategy:
@@ -42,6 +40,3 @@ objects:
         triggers:
           - type: ConfigChange
 parameters:
-  - name: GIT_SOURCESECRET
-    description: Secret containing a private key to be used to access git repo
-
