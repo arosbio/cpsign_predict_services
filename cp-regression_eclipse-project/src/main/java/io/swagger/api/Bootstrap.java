@@ -36,7 +36,7 @@ public class Bootstrap extends HttpServlet {
 
 
 		Swagger swagger = new Swagger().info(info).basePath(path);
-		swagger.setSchemes( new ArrayList<Scheme>(Arrays.asList(Scheme.HTTP)) );
+		swagger.setSchemes( new ArrayList<Scheme>(Arrays.asList(Scheme.HTTP,Scheme.HTTPS)) );
 
 		new SwaggerContextService().withServletConfig(config).updateSwagger(swagger);
 	}
