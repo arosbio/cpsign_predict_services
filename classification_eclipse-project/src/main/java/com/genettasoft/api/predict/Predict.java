@@ -25,8 +25,8 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
-import com.genettasoft.chem.io.out.MoleculeFigure.GradientFigureBuilder;
-import com.genettasoft.chem.io.out.MoleculeGradientDepictor;
+import com.genettasoft.chem.io.out.GradientFigureBuilder;
+import com.genettasoft.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.genettasoft.chem.io.out.fields.ColorGradientField;
 import com.genettasoft.chem.io.out.fields.PValuesField;
 import com.genettasoft.chem.io.out.fields.TitleField;
@@ -34,7 +34,7 @@ import com.genettasoft.depict.GradientFactory;
 import com.genettasoft.modeling.CPSignFactory;
 import com.genettasoft.modeling.cheminf.SignaturesCPClassification;
 import com.genettasoft.modeling.cheminf.SignificantSignature;
-import com.genettasoft.modeling.io.bndTools.BNDLoader;
+import com.genettasoft.modeling.io.ModelLoader;
 
 import io.swagger.model.BadRequestError;
 import io.swagger.model.ClassificationResult;
@@ -75,7 +75,8 @@ public class Predict {
 
 		// Instantiate the factory 
 		try{
-			factory = new CPSignFactory( new FileInputStream( new File(license_file) ) );
+			URI license_uri = new File(license_file).toURI();
+			factory = new CPSignFactory( license_uri );
 			logger.info("Initiated the CPSignFactory");
 		} catch (RuntimeException | IOException re){
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
@@ -89,10 +90,10 @@ public class Predict {
 				if (modelURI == null)
 					throw new IOException("did not locate the model file");
 				if ( factory.supportEncryption() ) {
-					model = (SignaturesCPClassification) BNDLoader.loadModel(modelURI, factory.getEncryptionSpec());
+					model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
 				}
 				else {
-					model = (SignaturesCPClassification) BNDLoader.loadModel(modelURI, null);
+					model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, null);
 				}
 				logger.info("Loaded model");
 			} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
@@ -124,7 +125,7 @@ public class Predict {
 		// try to parse an IAtomContainer - or fail
 		Pair<IAtomContainer, Response> molOrFail = null;
 		try {
-			molOrFail = ChemUtils.parseMolecule(molecule);
+			molOrFail = CPSignFactory. parseMolecule(molecule);
 			if (molOrFail.getValue1() != null)
 				return molOrFail.getValue1();
 		} catch (Exception | Error e) {
@@ -266,7 +267,7 @@ public class Predict {
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (IllegalAccessException | CDKException | IOException e) {
-			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
+			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ e.getMessage());
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
 		} finally {
 			CDKMutexLock.releaseLock();
