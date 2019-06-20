@@ -50,6 +50,8 @@ public class Predict {
 	private static final int MIN_IMAGE_SIZE = 50;
 	private static final int MAX_IMAGE_SIZE = 5000;
 	private static final String URL_ENCODING = "UTF-8";
+	
+	private static String errorMessage = null;
 
 	static {
 
@@ -125,7 +127,7 @@ public class Predict {
 		// try to parse an IAtomContainer - or fail
 		Pair<IAtomContainer, Response> molOrFail = null;
 		try {
-			molOrFail = CPSignFactory. parseMolecule(molecule);
+			molOrFail = ChemUtils.parseMolecule(molecule);
 			if (molOrFail.getValue1() != null)
 				return molOrFail.getValue1();
 		} catch (Exception | Error e) {
@@ -158,7 +160,7 @@ public class Predict {
 				pvalues.add(new PValueMapping(entry.getKey(), entry.getValue()));
 			}
 
-			return Response.status(200).entity( new ClassificationResult(pvalues, smiles, model.getModelName()).toString() ).build();
+			return Response.status(200).entity( new ClassificationResult(pvalues, smiles, model.getModelInfo().getModelName()).toString() ).build();
 		} catch (Exception e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
@@ -250,7 +252,7 @@ public class Predict {
 
 			// Add title if specified
 			if (addTitle) {
-				builder.addFieldOverImg(new TitleField(model.getModelName()));
+				builder.addFieldOverImg(new TitleField(model.getModelInfo().getModelName()));
 			}
 			// add confidence interval only if given confidence and image size is big enough
 			if (addPvaluesField && imageWidth>80){
@@ -259,7 +261,7 @@ public class Predict {
 			}
 			builder.addFieldUnderImg(new ColorGradientField(depictor.getColorGradient()));
 
-			BufferedImage image = builder.build(molToPredict, signSign.getAtomValues()).getImage();
+			BufferedImage image = builder.build(molToPredict, signSign.getMoleculeGradient()).getImage();
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", baos);
@@ -267,7 +269,7 @@ public class Predict {
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (IllegalAccessException | CDKException | IOException e) {
-			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ e.getMessage());
+			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
 		} finally {
 			CDKMutexLock.releaseLock();

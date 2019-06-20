@@ -20,8 +20,8 @@ import org.javatuples.Pair;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
-import com.genettasoft.chem.io.out.MoleculeFigure.GradientFigureBuilder;
-import com.genettasoft.chem.io.out.MoleculeGradientDepictor;
+import com.genettasoft.chem.io.out.GradientFigureBuilder;
+import com.genettasoft.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.genettasoft.chem.io.out.fields.ColorGradientField;
 import com.genettasoft.chem.io.out.fields.PredictionIntervalField;
 import com.genettasoft.chem.io.out.fields.TitleField;
@@ -29,7 +29,7 @@ import com.genettasoft.depict.GradientFactory;
 import com.genettasoft.modeling.CPSignFactory;
 import com.genettasoft.modeling.cheminf.SignaturesCPRegression;
 import com.genettasoft.modeling.cheminf.SignificantSignature;
-import com.genettasoft.modeling.io.bndTools.BNDLoader;
+import com.genettasoft.modeling.io.ModelLoader;
 import com.genettasoft.modeling.ml.cp.CPRegressionResult;
 
 import io.swagger.model.BadRequestError;
@@ -67,7 +67,8 @@ public class Predict {
 
 		// Instantiate the factory 
 		try{
-			factory = new CPSignFactory( new FileInputStream( new File(license_file) ) );
+			URI license_uri = new File(license_file).toURI();
+			factory = new CPSignFactory( license_uri );
 			logger.info("Initiated the CPSignFactory");
 		} catch (RuntimeException | IOException re){
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
@@ -81,10 +82,10 @@ public class Predict {
 				if (modelURI == null)
 					throw new IOException("did not locate the model file");
 				if ( factory.supportEncryption() ) {
-					model = (SignaturesCPRegression) BNDLoader.loadModel(modelURI, factory.getEncryptionSpec());
+					model = (SignaturesCPRegression) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
 				}
 				else {
-					model = (SignaturesCPRegression) BNDLoader.loadModel(modelURI, null);
+					model = (SignaturesCPRegression) ModelLoader.loadModel(modelURI, null);
 				}
 				logger.info("Loaded model");
 			} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
@@ -143,7 +144,7 @@ public class Predict {
 		try {
 			CPRegressionResult res = model.predict(molToPredict, confidence);
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
-			return Response.status(200).entity( new io.swagger.model.RegressionResult(smiles,res,confidence, model.getModelName()).toString() ).build();
+			return Response.status(200).entity( new io.swagger.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()).toString() ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
 			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
@@ -238,7 +239,7 @@ public class Predict {
 
 			// Add title if specified
 			if (addTitle) {
-				builder.addFieldOverImg(new TitleField(model.getModelName()));
+				builder.addFieldOverImg(new TitleField(model.getModelInfo().getModelName()));
 			}
 			// add confidence interval only if given confidence and image size is big enough
 			if (confidence != null && imageWidth>80){
@@ -247,7 +248,7 @@ public class Predict {
 			}
 			builder.addFieldUnderImg(new ColorGradientField(depictor.getColorGradient()));
 
-			BufferedImage image = builder.build(molToPredict, signSign.getAtomValues()).getImage();
+			BufferedImage image = builder.build(molToPredict, signSign.getMoleculeGradient()).getImage();
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", baos);
