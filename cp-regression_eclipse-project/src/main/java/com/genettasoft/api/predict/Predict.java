@@ -44,6 +44,8 @@ public class Predict {
 	private static final int MIN_IMAGE_SIZE = 50;
 	private static final int MAX_IMAGE_SIZE = 5000;
 	private static final String URL_ENCODING = "UTF-8";
+	
+	private static String errorMessage = null;
 
 	static {
 		final String license_file =  
@@ -71,6 +73,7 @@ public class Predict {
 			factory = new CPSignFactory( license_uri );
 			logger.info("Initiated the CPSignFactory");
 		} catch (RuntimeException | IOException re){
+			errorMessage = re.getMessage();
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
 			serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, re.getMessage() ).toString() ).build();
 		}
@@ -89,6 +92,7 @@ public class Predict {
 				}
 				logger.info("Loaded model");
 			} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
+				errorMessage = e.getMessage();
 				logger.error("Could not load the model", e);
 				serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, "Server error - could not load the built model").toString() ).build();
 			}
@@ -261,5 +265,13 @@ public class Predict {
 		} finally {
 			CDKMutexLock.releaseLock();
 		}
+	}
+	public static Response checkHealth() {
+		if( errorMessage != null) {
+			return Response.status(500).entity( new io.swagger.model.Error(500, errorMessage ).toString()).build();
+		} else {
+			return Response.status(200).entity("OK").build();
+		}
+			
 	}
 }

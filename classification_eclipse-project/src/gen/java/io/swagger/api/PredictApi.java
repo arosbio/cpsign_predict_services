@@ -11,6 +11,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import com.genettasoft.api.predict.Predict;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -128,5 +130,15 @@ public class PredictApi  {
 			return delegate.predictImagePost(smiles, imageWidth, imageHeight, addPvals, addTitle, securityContext);
 		else
 			return delegate.predictImagePost(molecule, imageWidth, imageHeight, addPvals, addTitle, securityContext);
+	}
+	
+	@Path("/health")
+	@GET
+	@ApiResponses(value = { 
+			@ApiResponse(code = 200, message = "OK"),
+			@ApiResponse(code = 500, message = "Prediction error", response = Error.class),
+	})
+	public Response health() {
+		return Predict.checkHealth();
 	}
 }

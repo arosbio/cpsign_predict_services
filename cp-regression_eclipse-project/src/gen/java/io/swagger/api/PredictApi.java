@@ -13,6 +13,8 @@ import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 
+import com.genettasoft.api.predict.Predict;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -132,5 +134,15 @@ public class PredictApi  {
 			return delegate.predictImageGet(smiles, imageWidth, imageHeight, confidence, addTitle, securityContext);
 		else
 			return delegate.predictImageGet(molecule, imageWidth, imageHeight, confidence, addTitle, securityContext);
+	}
+
+	@Path("/health")
+	@GET
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "OK"),
+			@ApiResponse(code = 500, message = "Prediction error", response = Error.class),
+	})
+	public Response health() {
+		return Predict.checkHealth();
 	}
 }
