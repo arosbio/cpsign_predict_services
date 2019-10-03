@@ -1,0 +1,63 @@
+<html>
+<head>
+
+<script type="text/javascript" language="javascript" src="jsme/jsme.nocache.js"></script>
+
+<script>
+ //this function will be called after the JavaScriptApplet code has been loaded.
+    function jsmeOnLoad() {
+        jsmeApplet = new JSApplet.JSME("jsme_container", "55.5%", "40%");
+        jsmeApplet.setAfterStructureModifiedCallback(showEvent);
+   	    var image = document.getElementById('image');
+    }
+
+    function imageNotFound() {
+        document.getElementById('error_label').innerText = "ERROR: Something went wrong with rendering the prediction image. Please try with another molecule or contact a site administrator if the problem persists."
+    }
+
+    function imageFound() {
+        document.getElementById('error_label').innerText = ""
+    }
+
+    function showEvent(event) {
+        var smiles = jsmeApplet.smiles()
+        window.setTimeout( function() { redraw(smiles) }, 900 );
+    }
+
+    function redraw(smiles) {
+        if ( smiles != jsmeApplet.smiles() ) {
+            return;
+        }
+        var imageurl = window.location.href.replace("/draw/","/v1/predictImage?smiles=" + jsmeApplet.smiles())
+                     + "&imageWidth="  + Math.floor(window.innerWidth*0.9) 
+                     + "&imageHeight=" + Math.floor(window.innerHeight*0.30-45-75)
+                     + "&addPvals=true"
+        var tester = new Image();
+        tester.addEventListener('error', imageNotFound)
+        tester.addEventListener('load', imageFound)
+        tester.src = imageurl;
+	    var image = document.getElementById('image');
+		image.src = imageurl;
+    }
+
+</script>
+</head>
+
+<body>
+	<noscript>
+		<div
+			style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+			Your web browser must have JavaScript enabled in order for this
+			application to display correctly.</div>
+	</noscript>
+
+        <div style="width: 43%; background-color: white; border: padding: 4px; font-family: sans-serif; float:right;">
+    <p><i>Instructions</i>: Draw your molecule in the editor, the prediction underneath will update as you draw.</p>
+    </div>
+ 
+    <div id="jsme_container" style="width=57%; float=left;"></div>
+
+    <div id="error_label" style="color:red"></div>
+    <img id="image"  style="display: block; margin: auto; height: 45%; float:left;"></img>
+</body>
+</html>
