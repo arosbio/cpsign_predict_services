@@ -166,7 +166,7 @@ public class Predict {
 			
 			SignaturesCVAPResult res = model.predict(molToPredict);
 			
-			logger.debug("Successfully finished predicting smiles="+smiles+", pvalues=" + res );
+			logger.debug("Successfully finished predicting smiles="+smiles+", probabilites=" + res );
 			
 			List<PValueMapping> pvalues = new ArrayList<>();
 			for (Entry<String, Double> entry : res.getProbabilties().entrySet()) {
