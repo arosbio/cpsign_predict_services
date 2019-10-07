@@ -21,7 +21,7 @@ public class Bootstrap extends HttpServlet {
 	@Override
 	public void init(ServletConfig config) throws ServletException {
 		Info info = new Info()
-				.title("Venaber Prediction Server")
+				.title("Venn-ABERS Prediction Server")
 				.version("0.1.0")
 				.description("Service that deploys a CPSign venaber model and allows for predictions to be made by the deployed model.")
 				.termsOfService("")
