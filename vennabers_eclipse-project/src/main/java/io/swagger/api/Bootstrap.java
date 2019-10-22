@@ -26,9 +26,10 @@ public class Bootstrap extends HttpServlet {
 				.description("Service that deploys a CPSign venaber model and allows for predictions to be made by the deployed model.")
 				.termsOfService("")
 				.contact(new Contact()
-						.email("info@genettasoft.com"))
+						.email("ola@arosbio.com")
+						.url("arosbio.com/"))
 				.license(new License()
-						.name("© GenettaSoft - All rights reserved")
+						.name("© Aros Bio - All rights reserved")
 						.url(""));
 
 		String path = config.getServletContext().getContextPath();
