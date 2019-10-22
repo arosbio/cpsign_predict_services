@@ -23,7 +23,7 @@ public class Bootstrap extends HttpServlet {
 		Info info = new Info()
 				.title("Venn-ABERS Prediction Server")
 				.version("0.1.0")
-				.description("Service that deploys a CPSign venaber model and allows for predictions to be made by the deployed model.")
+				.description("Service that deploys a CPSign Venn-ABERS model and allows for predictions to be made by the deployed model.")
 				.termsOfService("")
 				.contact(new Contact()
 						.email("ola@arosbio.com")
