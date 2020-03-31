@@ -1,5 +1,9 @@
 package com.genettasoft.api.predict;
 
+import java.net.MalformedURLException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 public class Utils {
 	
 	private static final int MAX_NUM_STACK_TO_LOGG = 10;
@@ -18,6 +22,23 @@ public class Utils {
 		}
 		
 		return sb.toString();
+	}
+	
+	public static String decodeURL(String text) throws MalformedURLException {
+		if (text ==null || text.isEmpty())
+			throw new IllegalArgumentException("Empty data");
+
+		// Charges should be kept as charges, so we replace the input "+" with URL-encoding of a "+" instead
+		if (text.contains("+")) {
+			text = text.replace("+", "%2B");
+		}
+
+		// Clean the molecule-string from URL encoding
+		try {
+			return URLDecoder.decode(text, StandardCharsets.UTF_8.name());
+		} catch (Exception e) {
+			throw new MalformedURLException("Could not decode text");
+		}
 	}
 
 }

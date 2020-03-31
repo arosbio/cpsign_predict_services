@@ -6,10 +6,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +19,6 @@ import java.util.Map.Entry;
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
-import org.javatuples.Pair;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
@@ -49,69 +47,68 @@ public class Predict {
 
 	private static final int MIN_IMAGE_SIZE = 50;
 	private static final int MAX_IMAGE_SIZE = 5000;
-	private static final String URL_ENCODING = "UTF-8";
-	
+
 	private static String errorMessage = null;
 
 	static {
 
 		final String license_file =
 				System.getenv("LICENSE_FILE")!=null?System.getenv("LICENSE_FILE"):"/opt/app-root/modeldata/license.license";
-		final String model_file =
-				System.getenv("MODEL_FILE")!=null?System.getenv("MODEL_FILE"):"/opt/app-root/modeldata/model.jar";
+				final String model_file =
+						System.getenv("MODEL_FILE")!=null?System.getenv("MODEL_FILE"):"/opt/app-root/modeldata/model.jar";
 
-		// Get the root logger for cpsign
-		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.genettasoft.modeling");
-		if(cpsingLogger instanceof ch.qos.logback.classic.Logger) {
-			ch.qos.logback.classic.Logger cpsignRoot = (ch.qos.logback.classic.Logger) cpsingLogger;
-			// Disable all cpsign-output
-			cpsignRoot.setLevel(ch.qos.logback.classic.Level.OFF);
-		}
+						// Get the root logger for cpsign
+						Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.genettasoft.modeling");
+						if(cpsingLogger instanceof ch.qos.logback.classic.Logger) {
+							ch.qos.logback.classic.Logger cpsignRoot = (ch.qos.logback.classic.Logger) cpsingLogger;
+							// Disable all cpsign-output
+							cpsignRoot.setLevel(ch.qos.logback.classic.Level.OFF);
+						}
 
-		// Enable debug output for this library
-		Logger cpLogDLogging = org.slf4j.LoggerFactory.getLogger("se.uu.farmbio");
-		if(cpLogDLogging instanceof ch.qos.logback.classic.Logger) {
-			ch.qos.logback.classic.Logger cpLogDLogger = (ch.qos.logback.classic.Logger) cpLogDLogging;
-			cpLogDLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
-		}
+						// Enable debug output for this library
+						Logger cpLogDLogging = org.slf4j.LoggerFactory.getLogger("se.uu.farmbio");
+						if(cpLogDLogging instanceof ch.qos.logback.classic.Logger) {
+							ch.qos.logback.classic.Logger cpLogDLogger = (ch.qos.logback.classic.Logger) cpLogDLogging;
+							cpLogDLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
+						}
 
-		// Instantiate the factory 
-		try{
-			URI license_uri = new File(license_file).toURI();
-			factory = new CPSignFactory( license_uri );
-			logger.info("Initiated the CPSignFactory");
-		} catch (RuntimeException | IOException re){
-			errorMessage = re.getMessage();
-			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
-			serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, re.getMessage() ).toString() ).build();
-		}
-		// load the model - only if no error previously encountered
-		if (serverErrorResponse == null) {
-			try {
-				logger.debug("Trying to load in the model");
-				URI modelURI = new File(model_file).toURI();
-				if (modelURI == null)
-					throw new IOException("did not locate the model file");
-				if ( factory.supportEncryption() ) {
-					model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
-				}
-				else {
-					model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, null);
-				}
-				logger.info("Loaded model");
-			} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
-				errorMessage = e.getMessage();
-				logger.error("Could not load the model", e);
-				serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, "Server error - could not load the built model").toString() ).build();
-			}
-		}
+						// Instantiate the factory 
+						try{
+							URI license_uri = new File(license_file).toURI();
+							factory = new CPSignFactory( license_uri );
+							logger.info("Initiated the CPSignFactory");
+						} catch (RuntimeException | IOException re){
+							errorMessage = re.getMessage();
+							logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
+							serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, re.getMessage() ).toString() ).build();
+						}
+						// load the model - only if no error previously encountered
+						if (serverErrorResponse == null) {
+							try {
+								logger.debug("Trying to load in the model");
+								URI modelURI = new File(model_file).toURI();
+								if (modelURI == null)
+									throw new IOException("did not locate the model file");
+								if ( factory.supportEncryption() ) {
+									model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
+								}
+								else {
+									model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, null);
+								}
+								logger.info("Loaded model");
+							} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
+								errorMessage = e.getMessage();
+								logger.error("Could not load the model", e);
+								serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, "Server error - could not load the built model").toString() ).build();
+							}
+						}
 	}
 
 	public static Response checkHealth() {
 		if( errorMessage != null) {
 			return Response.status(500).entity( new io.swagger.model.Error(500, errorMessage ).toString()).build();
 		} else {
-		    return Response.status(200).entity("OK").build();
+			return Response.status(200).entity("OK").build();
 		}
 
 	}
@@ -123,29 +120,28 @@ public class Predict {
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
-			return Response.status(400).entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).build();
+			return Response.status(400).
+					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).
+					build();
 		}
 
-		// Clean the molecule-string from URL encoding
+		String decodedMolData = null;
 		try {
-			molecule = URLDecoder.decode(molecule, URL_ENCODING);
-		} catch (Exception e) {
-			return Response.status(400).entity( 
-					new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
-		}
+			decodedMolData = Utils.decodeURL(molecule);
+		} catch (MalformedURLException e) {
+			return Response.status(400).
+					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).
+					build();
+		} 
 
-		// try to parse an IAtomContainer - or fail
-		Pair<IAtomContainer, Response> molOrFail = null;
+		IAtomContainer molToPredict = null;
 		try {
-			molOrFail = ChemUtils.parseMolecule(molecule);
-			if (molOrFail.getValue1() != null)
-				return molOrFail.getValue1();
-		} catch (Exception | Error e) {
-			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
-			return Response.status(400).entity(
-					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).
+					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")).toString() ).
+					build();
 		}
-		IAtomContainer molToPredict=molOrFail.getValue0();
 
 		// Generate SMILES to have in the response
 		String smiles = null;
@@ -163,7 +159,7 @@ public class Predict {
 		CDKMutexLock.requireLock();
 		try {
 			Map<String, Double> res = model.predictMondrian(molToPredict);
-			
+
 			logger.debug("Successfully finished predicting smiles="+smiles+", pvalues=" + res );
 			List<PValueMapping> pvalues = new ArrayList<>();
 			for (Entry<String, Double> entry : res.entrySet()) {
@@ -217,35 +213,31 @@ public class Predict {
 			}
 		}
 
-		// Clean the molecule-string from URL encoding
+		String decodedMolData = null;
 		try {
-			molecule = URLDecoder.decode(molecule, URL_ENCODING);
-		} catch (Exception e) {
-			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
+			decodedMolData = Utils.decodeURL(molecule);
+		} catch (MalformedURLException e) {
+			return Response.status(400).
+					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).
+					build();
+		} 
+
+		IAtomContainer molToPredict = null;
+		try {
+			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).
+					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")).toString() ).
+					build();
 		}
 
-		// try to parse an IAtomContainer - or fail
-		Pair<IAtomContainer, Response> molOrFail = null;
-		try {
-			molOrFail = ChemUtils.parseMolecule(molecule);
-			if (molOrFail.getValue1() != null)
-				return molOrFail.getValue1();
-		} catch (Exception | Error e) {
-			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
-			return Response.status(400).entity(
-					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
-		}
-
-		IAtomContainer molToPredict=molOrFail.getValue0();
-
-
-		// Get smiles representation of molecule
+		// Get smiles representation of molecule (mostly for debugging)
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
 		} catch (Exception e) {
+			smiles = "<no SMILES available>";
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
-			return Response.status(400).entity(new BadRequestError(400, "Could not generate SMILES for molecule",Arrays.asList("molecule"))).build();
 		}
 
 		// Make prediction + image
