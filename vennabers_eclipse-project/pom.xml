@@ -1,11 +1,28 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.genettasoft</groupId>
-	<artifactId>cpsign.predict.rest.venaber</artifactId>
+	<artifactId>cpsign.predict.rest.venn-aber</artifactId>
 	<packaging>war</packaging>
 	<name>CPSign.Predict.Venaber</name>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
+
+	<properties>
+		<cpsign.version>[0.7,0.7.13)</cpsign.version>
+		<java.version>1.8</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<swagger-core-version>1.5.21</swagger-core-version>
+		<jetty-version>9.2.9.v20150224</jetty-version>
+		<jersey2-version>2.22.2</jersey2-version>
+		<jackson-version>2.8.9</jackson-version>
+		<junit-version>4.12</junit-version>
+		<logback-version>1.1.7</logback-version>
+		<servlet-api-version>2.5</servlet-api-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<swagger-ui-version>3.4.2</swagger-ui-version>
+	</properties>
 
 	<licenses>
 		<license>
@@ -36,9 +53,9 @@
 			<build>
 				<plugins>
 					<plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <version>3.1.0</version>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>3.1.0</version>
 						<configuration>
 							<warName>ROOT</warName>
 						</configuration>
@@ -245,12 +262,12 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1.1</version>
 		</dependency>
-		<!--  https://stackoverflow.com/a/52502208  -->
+		<!-- https://stackoverflow.com/a/52502208 -->
 		<dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.0</version>
-        </dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.0</version>
+		</dependency>
 
 
 		<!-- Bean Validation API support -->
@@ -278,19 +295,5 @@
 			<url>http://repo2.maven.org/maven2</url>
 		</repository>
 	</repositories>
-	<properties>
-		<cpsign.version>[0.7,0.7.13)</cpsign.version>
-		<java.version>1.7</java.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<swagger-core-version>1.5.21</swagger-core-version>
-		<jetty-version>9.2.9.v20150224</jetty-version>
-		<jersey2-version>2.22.2</jersey2-version>
-		<jackson-version>2.8.9</jackson-version>
-		<junit-version>4.12</junit-version>
-		<logback-version>1.1.7</logback-version>
-		<servlet-api-version>2.5</servlet-api-version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<swagger-ui-version>3.4.2</swagger-ui-version>
-	</properties>
+
 </project>
