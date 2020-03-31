@@ -13,7 +13,7 @@ import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 
-import com.genettasoft.api.predict.Predict;
+import com.arosbio.api.rest.predict.Predict;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

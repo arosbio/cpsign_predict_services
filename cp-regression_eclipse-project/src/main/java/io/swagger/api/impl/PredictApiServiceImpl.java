@@ -3,7 +3,7 @@ package io.swagger.api.impl;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.genettasoft.api.predict.Predict;
+import com.arosbio.api.rest.predict.Predict;
 
 import io.swagger.api.NotFoundException;
 import io.swagger.api.PredictApiService;

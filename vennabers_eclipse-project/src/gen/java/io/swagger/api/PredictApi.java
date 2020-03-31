@@ -11,7 +11,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import com.genettasoft.api.predict.Predict;
+import com.arosbio.api.rest.predict.Predict;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

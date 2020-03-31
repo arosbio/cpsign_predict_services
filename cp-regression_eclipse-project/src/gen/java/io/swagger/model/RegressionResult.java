@@ -6,8 +6,8 @@ import javax.validation.constraints.NotNull;
 
 import org.json.simple.JSONObject;
 
+import com.arosbio.api.rest.predict.Utils;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.genettasoft.api.predict.Utils;
 import com.genettasoft.modeling.ml.cp.CPRegressionResult;
 
 import io.swagger.annotations.ApiModel;
