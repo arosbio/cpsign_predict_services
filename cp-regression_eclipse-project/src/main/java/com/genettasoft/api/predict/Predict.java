@@ -6,17 +6,15 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
-import org.javatuples.Pair;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
@@ -43,7 +41,6 @@ public class Predict {
 
 	private static final int MIN_IMAGE_SIZE = 50;
 	private static final int MAX_IMAGE_SIZE = 5000;
-	private static final String URL_ENCODING = "UTF-8";
 	
 	private static String errorMessage = null;
 
@@ -61,9 +58,9 @@ public class Predict {
 		}
 
 		// Enable debug output for this library
-		Logger cpLogDLogging = org.slf4j.LoggerFactory.getLogger("se.uu.farmbio");
-		if(cpLogDLogging instanceof ch.qos.logback.classic.Logger) {
-			ch.qos.logback.classic.Logger cpLogDLogger = (ch.qos.logback.classic.Logger) cpLogDLogging;
+		Logger predictServerLogger = org.slf4j.LoggerFactory.getLogger("com.arosbio");
+		if(predictServerLogger instanceof ch.qos.logback.classic.Logger) {
+			ch.qos.logback.classic.Logger cpLogDLogger = (ch.qos.logback.classic.Logger) predictServerLogger;
 			cpLogDLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
 		}
 
@@ -107,34 +104,33 @@ public class Predict {
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
-			return Response.status(400).entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).build();
+			return Response.status(400).
+					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).
+					build();
 		}
 
-		// Clean the molecule-string from URL encoding
+		String decodedMolData = null;
 		try {
-			molecule = URLDecoder.decode(molecule, URL_ENCODING);
-		} catch (Exception e) {
-			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
-		}
+			decodedMolData = Utils.decodeURL(molecule);
+		} catch (MalformedURLException e) {
+			return Response.status(400).
+					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).
+					build();
+		} 
 
-		// try to parse an IAtomContainer - or fail
-		Pair<IAtomContainer, Response> molOrFail = null;
+		IAtomContainer molToPredict = null;
 		try {
-			molOrFail = ChemUtils.parseMolecule(molecule);
-			if (molOrFail.getValue1() != null)
-				return molOrFail.getValue1();
-		} catch (Exception | Error e) {
-			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
-			return Response.status(400).entity(
-					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).
+					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")).toString() ).
+					build();
 		}
-
-		IAtomContainer molToPredict=molOrFail.getValue0();
 
 		// Generate SMILES to have in the response
 		String smiles = null;
 		try {
-			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
+			smiles = ChemUtils.getAsSmiles(molToPredict, decodedMolData);
 			logger.info("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
@@ -197,25 +193,50 @@ public class Predict {
 			}
 		}
 
-		// Clean the molecule-string from URL encoding
-		try {
-			molecule = URLDecoder.decode(molecule, URL_ENCODING);
-		} catch (Exception e) {
-			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
+		if (molecule==null || molecule.isEmpty()){
+			logger.debug("Missing arguments 'molecule'");
+			return Response.status(400).
+					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).
+					build();
 		}
 
-		// try to parse an IAtomContainer - or fail
-		Pair<IAtomContainer, Response> molOrFail = null;
+		String decodedMolData = null;
 		try {
-			molOrFail = ChemUtils.parseMolecule(molecule);
-			if (molOrFail.getValue1() != null)
-				return molOrFail.getValue1();
-		} catch (Exception | Error e) {
-			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
-			return Response.status(400).entity(
-					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+			decodedMolData = Utils.decodeURL(molecule);
+		} catch (MalformedURLException e) {
+			return Response.status(400).
+					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).
+					build();
+		} 
+
+		IAtomContainer molToPredict = null;
+		try {
+			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
+		} catch (IllegalArgumentException e) {
+			return Response.status(400).
+					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")).toString() ).
+					build();
 		}
-		IAtomContainer molToPredict=molOrFail.getValue0();
+		
+		// Clean the molecule-string from URL encoding
+//		try {
+//			molecule = URLDecoder.decode(molecule, URL_ENCODING);
+//		} catch (Exception e) {
+//			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
+//		}
+//
+//		// try to parse an IAtomContainer - or fail
+//		Pair<IAtomContainer, Response> molOrFail = null;
+//		try {
+//			molOrFail = ChemUtils.parseMolecule(molecule);
+//			if (molOrFail.getValue1() != null)
+//				return molOrFail.getValue1();
+//		} catch (Exception | Error e) {
+//			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
+//			return Response.status(400).entity(
+//					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+//		}
+//		IAtomContainer molToPredict=molOrFail.getValue0();
 
 		// Generate SMILES to have in the response
 		String smiles = null;

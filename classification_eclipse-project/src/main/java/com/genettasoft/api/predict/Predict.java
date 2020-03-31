@@ -146,7 +146,7 @@ public class Predict {
 		// Generate SMILES to have in the response
 		String smiles = null;
 		try {
-			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
+			smiles = ChemUtils.getAsSmiles(molToPredict, decodedMolData);
 			logger.debug("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
