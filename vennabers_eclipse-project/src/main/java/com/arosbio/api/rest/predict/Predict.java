@@ -23,17 +23,18 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
-import com.genettasoft.chem.io.out.GradientFigureBuilder;
-import com.genettasoft.chem.io.out.depictors.MoleculeGradientDepictor;
-import com.genettasoft.chem.io.out.fields.ColorGradientField;
-import com.genettasoft.chem.io.out.fields.ProbabilityField;
-import com.genettasoft.chem.io.out.fields.TitleField;
-import com.genettasoft.depict.GradientFactory;
-import com.genettasoft.modeling.CPSignFactory;
-import com.genettasoft.modeling.cheminf.SignaturesVAPClassification;
-import com.genettasoft.modeling.cheminf.SignaturesVAPClassification.SignaturesCVAPResult;
-import com.genettasoft.modeling.cheminf.SignificantSignature;
-import com.genettasoft.modeling.io.ModelLoader;
+import com.arosbio.chem.io.out.GradientFigureBuilder;
+import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
+import com.arosbio.chem.io.out.fields.ColorGradientField;
+import com.arosbio.chem.io.out.fields.ProbabilityField;
+import com.arosbio.chem.io.out.fields.TitleField;
+import com.arosbio.commons.auth.PermissionsCheck;
+import com.arosbio.depict.GradientFactory;
+import com.arosbio.modeling.CPSignFactory;
+import com.arosbio.modeling.cheminf.SignaturesVAPClassification;
+import com.arosbio.modeling.cheminf.SignaturesVAPClassification.SignaturesCVAPResult;
+import com.arosbio.modeling.cheminf.SignificantSignature;
+import com.arosbio.modeling.io.ModelLoader;
 
 import io.swagger.model.BadRequestError;
 import io.swagger.model.PValueMapping;
@@ -108,6 +109,8 @@ public class Predict {
 	public static Response checkHealth() {
 		if( errorMessage != null) {
 			return Response.status(500).entity( new io.swagger.model.Error(500, errorMessage ).toString()).build();
+		} else if (! PermissionsCheck.check()) {
+			return Response.status(500).entity( new io.swagger.model.Error(500, "License has expired" ).toString()).build();
 		} else {
 		    return Response.status(200).entity("OK").build();
 		}
