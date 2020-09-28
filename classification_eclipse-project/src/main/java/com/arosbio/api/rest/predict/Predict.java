@@ -28,6 +28,7 @@ import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.arosbio.chem.io.out.fields.ColorGradientField;
 import com.arosbio.chem.io.out.fields.PValuesField;
 import com.arosbio.chem.io.out.fields.TitleField;
+import com.arosbio.commons.auth.PermissionsCheck;
 import com.arosbio.depict.GradientFactory;
 import com.arosbio.modeling.CPSignFactory;
 import com.arosbio.modeling.cheminf.SignaturesCPClassification;
@@ -104,8 +105,11 @@ public class Predict {
 	}
 
 	public static Response checkHealth() {
-		if( errorMessage != null) {
+		
+		if ( errorMessage != null) {
 			return Response.status(500).entity( new io.swagger.model.Error(500, errorMessage ).toString()).build();
+		} else if (! PermissionsCheck.check()) {
+			return Response.status(500).entity( new io.swagger.model.Error(500, "License has expired" ).toString()).build();
 		} else {
 			return Response.status(200).entity("OK").build();
 		}
