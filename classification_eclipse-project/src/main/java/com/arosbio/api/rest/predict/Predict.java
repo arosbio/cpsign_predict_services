@@ -23,16 +23,16 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
-import com.genettasoft.chem.io.out.GradientFigureBuilder;
-import com.genettasoft.chem.io.out.depictors.MoleculeGradientDepictor;
-import com.genettasoft.chem.io.out.fields.ColorGradientField;
-import com.genettasoft.chem.io.out.fields.PValuesField;
-import com.genettasoft.chem.io.out.fields.TitleField;
-import com.genettasoft.depict.GradientFactory;
-import com.genettasoft.modeling.CPSignFactory;
-import com.genettasoft.modeling.cheminf.SignaturesCPClassification;
-import com.genettasoft.modeling.cheminf.SignificantSignature;
-import com.genettasoft.modeling.io.ModelLoader;
+import com.arosbio.chem.io.out.GradientFigureBuilder;
+import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
+import com.arosbio.chem.io.out.fields.ColorGradientField;
+import com.arosbio.chem.io.out.fields.PValuesField;
+import com.arosbio.chem.io.out.fields.TitleField;
+import com.arosbio.depict.GradientFactory;
+import com.arosbio.modeling.CPSignFactory;
+import com.arosbio.modeling.cheminf.SignaturesCPClassification;
+import com.arosbio.modeling.cheminf.SignificantSignature;
+import com.arosbio.modeling.io.ModelLoader;
 
 import io.swagger.model.BadRequestError;
 import io.swagger.model.ClassificationResult;
@@ -52,56 +52,55 @@ public class Predict {
 
 	static {
 
-		final String license_file =
-				System.getenv("LICENSE_FILE")!=null?System.getenv("LICENSE_FILE"):"/opt/app-root/modeldata/license.license";
-				final String model_file =
-						System.getenv("MODEL_FILE")!=null?System.getenv("MODEL_FILE"):"/opt/app-root/modeldata/model.jar";
+		final String license_file = System.getenv("LICENSE_FILE")!=null ? System.getenv("LICENSE_FILE") : "/opt/app-root/modeldata/license.license";
 
-						// Get the root logger for cpsign
-						Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.genettasoft.modeling");
-						if(cpsingLogger instanceof ch.qos.logback.classic.Logger) {
-							ch.qos.logback.classic.Logger cpsignRoot = (ch.qos.logback.classic.Logger) cpsingLogger;
-							// Disable all cpsign-output
-							cpsignRoot.setLevel(ch.qos.logback.classic.Level.OFF);
-						}
+		final String model_file = System.getenv("MODEL_FILE")!=null?System.getenv("MODEL_FILE"):"/opt/app-root/modeldata/model.jar";
 
-						// Enable debug output for this library
-						Logger cpLogDLogging = org.slf4j.LoggerFactory.getLogger("com.arosbio.api.rest");
-						if(cpLogDLogging instanceof ch.qos.logback.classic.Logger) {
-							ch.qos.logback.classic.Logger cpLogDLogger = (ch.qos.logback.classic.Logger) cpLogDLogging;
-							cpLogDLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
-						}
+		// Get the root logger for cpsign
+		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio.modeling");
+		if(cpsingLogger instanceof ch.qos.logback.classic.Logger) {
+			ch.qos.logback.classic.Logger cpsignRoot = (ch.qos.logback.classic.Logger) cpsingLogger;
+			// Disable all cpsign-output
+			cpsignRoot.setLevel(ch.qos.logback.classic.Level.OFF);
+		}
 
-						// Instantiate the factory 
-						try{
-							URI license_uri = new File(license_file).toURI();
-							factory = new CPSignFactory( license_uri );
-							logger.info("Initiated the CPSignFactory");
-						} catch (RuntimeException | IOException re){
-							errorMessage = re.getMessage();
-							logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
-							serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, re.getMessage() ).toString() ).build();
-						}
-						// load the model - only if no error previously encountered
-						if (serverErrorResponse == null) {
-							try {
-								logger.debug("Trying to load in the model");
-								URI modelURI = new File(model_file).toURI();
-								if (modelURI == null)
-									throw new IOException("did not locate the model file");
-								if ( factory.supportEncryption() ) {
-									model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
-								}
-								else {
-									model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, null);
-								}
-								logger.info("Loaded model");
-							} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
-								errorMessage = e.getMessage();
-								logger.error("Could not load the model", e);
-								serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, "Server error - could not load the built model").toString() ).build();
-							}
-						}
+		// Enable debug output for this library
+		Logger cpLogDLogging = org.slf4j.LoggerFactory.getLogger("com.arosbio.api.rest");
+		if(cpLogDLogging instanceof ch.qos.logback.classic.Logger) {
+			ch.qos.logback.classic.Logger cpLogDLogger = (ch.qos.logback.classic.Logger) cpLogDLogging;
+			cpLogDLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
+		}
+
+		// Instantiate the factory 
+		try{
+			URI license_uri = new File(license_file).toURI();
+			factory = new CPSignFactory( license_uri );
+			logger.info("Initiated the CPSignFactory");
+		} catch (RuntimeException | IOException re){
+			errorMessage = re.getMessage();
+			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
+			serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, re.getMessage() ).toString() ).build();
+		}
+		// load the model - only if no error previously encountered
+		if (serverErrorResponse == null) {
+			try {
+				logger.debug("Trying to load in the model");
+				URI modelURI = new File(model_file).toURI();
+				if (modelURI == null)
+					throw new IOException("did not locate the model file");
+				if ( factory.supportEncryption() ) {
+					model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
+				}
+				else {
+					model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, null);
+				}
+				logger.info("Loaded model");
+			} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
+				errorMessage = e.getMessage();
+				logger.error("Could not load the model", e);
+				serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, "Server error - could not load the built model").toString() ).build();
+			}
+		}
 	}
 
 	public static Response checkHealth() {
