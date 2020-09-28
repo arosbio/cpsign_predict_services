@@ -7,8 +7,8 @@ import javax.validation.constraints.NotNull;
 import org.json.simple.JSONObject;
 
 import com.arosbio.api.rest.predict.Utils;
+import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.genettasoft.modeling.ml.cp.CPRegressionResult;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -53,8 +53,8 @@ public class RegressionResult {
 		this.modelName = modelName;
 	}
 	
-	public RegressionResult(String smiles, CPRegressionResult res, double confidence, String modelName){
-		this(smiles, res.getCappedInterval().getValue0(),res.getCappedInterval().getValue1(),res.getY_hat(),confidence, modelName);
+	public RegressionResult(String smiles, CPRegressionPrediction res, double confidence, String modelName){
+		this(smiles, res.getInterval(confidence).getInterval().lowerEndpoint(),res.getInterval(confidence).getInterval().upperEndpoint(),res.getY_hat(),confidence, modelName);
 	}
 
 	@Override

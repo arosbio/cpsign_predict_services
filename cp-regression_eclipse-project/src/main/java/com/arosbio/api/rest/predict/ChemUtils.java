@@ -3,20 +3,22 @@ package com.arosbio.api.rest.predict;
 import java.io.ByteArrayInputStream;
 
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.MDLV3000Reader;
 import org.openscience.cdk.silent.AtomContainer;
+import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmiFlavor;
 import org.openscience.cdk.smiles.SmilesGenerator;
+import org.openscience.cdk.smiles.SmilesParser;
 import org.slf4j.Logger;
-
-import com.genettasoft.modeling.CPSignFactory;
 
 public class ChemUtils {
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(ChemUtils.class);
 	private static SmilesGenerator sg = new SmilesGenerator(SmiFlavor.Canonical);
+	private static final SmilesParser parser = new SmilesParser(SilentChemObjectBuilder.getInstance());
 
 	public static IAtomContainer parseMolOrFail(String moleculeData) 
 			throws IllegalArgumentException {
@@ -50,11 +52,11 @@ public class ChemUtils {
 			} else {
 				// Simply a single SMILES
 				try {
-					return CPSignFactory.parseSMILES(moleculeData);
-				} catch(IllegalArgumentException e){
+					return parser.parseSmiles(moleculeData);
+				} catch (InvalidSmilesException | IllegalArgumentException e){
 					logger.debug("Got exception when parsing smiles:\n" + Utils.getStackTrace(e));
 					throw new IllegalArgumentException("Invalid query SMILES '" + moleculeData + '\'');
-				} 
+				}  
 
 			}
 		} finally {

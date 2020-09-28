@@ -15,20 +15,23 @@ import java.util.Arrays;
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
+import org.javatuples.Pair;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
-import com.genettasoft.chem.io.out.GradientFigureBuilder;
-import com.genettasoft.chem.io.out.depictors.MoleculeGradientDepictor;
-import com.genettasoft.chem.io.out.fields.ColorGradientField;
-import com.genettasoft.chem.io.out.fields.PredictionIntervalField;
-import com.genettasoft.chem.io.out.fields.TitleField;
-import com.genettasoft.depict.GradientFactory;
-import com.genettasoft.modeling.CPSignFactory;
-import com.genettasoft.modeling.cheminf.SignaturesCPRegression;
-import com.genettasoft.modeling.cheminf.SignificantSignature;
-import com.genettasoft.modeling.io.ModelLoader;
-import com.genettasoft.modeling.ml.cp.CPRegressionResult;
+import com.arosbio.chem.io.out.GradientFigureBuilder;
+import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
+import com.arosbio.chem.io.out.fields.ColorGradientField;
+import com.arosbio.chem.io.out.fields.PredictionIntervalField;
+import com.arosbio.chem.io.out.fields.TitleField;
+import com.arosbio.commons.auth.PermissionsCheck;
+import com.arosbio.depict.GradientFactory;
+import com.arosbio.modeling.CPSignFactory;
+import com.arosbio.modeling.cheminf.SignaturesCPRegression;
+import com.arosbio.modeling.cheminf.SignificantSignature;
+import com.arosbio.modeling.io.ModelLoader;
+import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
+import com.google.common.collect.Range;
 
 import io.swagger.model.BadRequestError;
 
@@ -142,7 +145,7 @@ public class Predict {
 		// Make prediction
 		CDKMutexLock.requireLock();
 		try {
-			CPRegressionResult res = model.predict(molToPredict, confidence);
+			CPRegressionPrediction res = model.predict(molToPredict, confidence);
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
 			return Response.status(200).entity( new io.swagger.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()).toString() ).build();
 		} catch (Exception | Error e) {
@@ -268,8 +271,9 @@ public class Predict {
 			}
 			// add confidence interval only if given confidence and image size is big enough
 			if (confidence != null && imageWidth>80){
-				CPRegressionResult pred = model.predict(molToPredict, confidence);
-				builder.addFieldUnderImg(new PredictionIntervalField(pred.getInterval(), confidence));
+				CPRegressionPrediction pred = model.predict(molToPredict, confidence);
+				Range<Double> interval = pred.getInterval(confidence).getInterval();
+				builder.addFieldUnderImg(new PredictionIntervalField(Pair.with(interval.lowerEndpoint(), interval.upperEndpoint()), confidence));
 			}
 			builder.addFieldUnderImg(new ColorGradientField(depictor.getColorGradient()));
 
@@ -290,6 +294,8 @@ public class Predict {
 	public static Response checkHealth() {
 		if( errorMessage != null) {
 			return Response.status(500).entity( new io.swagger.model.Error(500, errorMessage ).toString()).build();
+		} else if (! PermissionsCheck.check()) {
+			return Response.status(500).entity( new io.swagger.model.Error(500, "License has expired" ).toString()).build();
 		} else {
 			return Response.status(200).entity("OK").build();
 		}
