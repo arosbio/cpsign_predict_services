@@ -60,7 +60,7 @@ public class Predict {
 				System.getenv("MODEL_FILE")!=null?System.getenv("MODEL_FILE"):"/opt/app-root/modeldata/model.jar";
 
 		// Get the root logger for cpsign
-		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.genettasoft.modeling");
+		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
 		if(cpsingLogger instanceof ch.qos.logback.classic.Logger) {
 			ch.qos.logback.classic.Logger cpsignRoot = (ch.qos.logback.classic.Logger) cpsingLogger;
 			// Disable all cpsign-output
