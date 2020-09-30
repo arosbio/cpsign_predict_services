@@ -70,22 +70,16 @@ public class PredictApi  {
 
 			@ApiResponse(code = 503, message = "Service not available", response = Error.class) })
 	public Response predictGet(
-			
+
 			@ApiParam(value = "Compound structure notation using SMILES or MDL format", required=false, defaultValue="CCCCC=O")
 			@QueryParam("molecule") String molecule,
-			
-			@ApiParam(value = "**(Depricated)** Compound structure notation using SMILES notation", required=false)
-			@QueryParam("smiles") String smiles,
-			
+
 			@ApiParam(value = "The desired confidence of the prediction", allowableValues="range(0,1)")
 			@DefaultValue("0.8") @QueryParam("confidence") double confidence,
-			
+
 			@Context SecurityContext securityContext)
 					throws NotFoundException {
-		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
-			return delegate.predictGet(smiles,confidence,securityContext);
-		else
-			return delegate.predictGet(molecule,confidence,securityContext);
+		return delegate.predictGet(molecule,confidence,securityContext);
 	}
 
 
@@ -112,35 +106,29 @@ public class PredictApi  {
 			defaultValue="CCCCC=O")
 			@QueryParam("molecule") String molecule,
 
-			@ApiParam(value = "**(Depricated)** Compound structure notation using SMILES notation", required=false)
-			@QueryParam("smiles") String smiles,
-
 			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
-			
+
 			@ApiParam(value = "Image height (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageHeight") int imageHeight,
-			
+
 			@ApiParam(value = "Confidence of prediction (writes prediction interval in figure)", required=false)
 			@QueryParam("confidence") Double confidence,
-			
+
 			@ApiParam(value = "Add title to the image (using the model name)")
 			@DefaultValue("false") @QueryParam("addTitle") boolean addTitle,
-			
+
 			@Context SecurityContext securityContext ) {
 		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
 
-		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
-			return delegate.predictImageGet(smiles, imageWidth, imageHeight, confidence, addTitle, securityContext);
-		else
-			return delegate.predictImageGet(molecule, imageWidth, imageHeight, confidence, addTitle, securityContext);
+		return delegate.predictImageGet(molecule, imageWidth, imageHeight, confidence, addTitle, securityContext);
 	}
 
 	@Path("/health")
 	@GET
 	@ApiResponses(value = {
 			@ApiResponse(code = 200, message = "OK"),
-			@ApiResponse(code = 500, message = "Prediction error", response = Error.class),
+			@ApiResponse(code = 503, message = "Service down", response = Error.class),
 	})
 	public Response health() {
 		return Predict.checkHealth();

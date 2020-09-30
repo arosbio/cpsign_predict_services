@@ -41,6 +41,8 @@ import io.swagger.model.PValueMapping;
 
 public class Predict {
 
+	public static final String DEFAULT_LICENSE_PATH = "/opt/app-root/modeldata/license.license";
+	public static final String DEFAULT_MODEL_PATH = "/opt/app-root/modeldata/model.jar";
 	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
 	public static final String LICENSE_FILE_ENV_VARIABLE = "LICENSE_FILE";
 	
@@ -56,9 +58,9 @@ public class Predict {
 
 	static {
 
-		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null ? System.getenv(LICENSE_FILE_ENV_VARIABLE) : "/opt/app-root/modeldata/license.license";
+		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null ? System.getenv(LICENSE_FILE_ENV_VARIABLE) : DEFAULT_LICENSE_PATH;
 
-		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE):"/opt/app-root/modeldata/model.jar";
+		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE) : DEFAULT_MODEL_PATH;
 
 		// Get the root logger for cpsign
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
@@ -110,9 +112,9 @@ public class Predict {
 	public static Response checkHealth() {
 		
 		if ( errorMessage != null) {
-			return Response.status(500).entity( new io.swagger.model.Error(500, errorMessage ).toString()).build();
+			return Response.status(503).entity( new io.swagger.model.Error(503, errorMessage ).toString()).build();
 		} else if (! PermissionsCheck.check()) {
-			return Response.status(500).entity( new io.swagger.model.Error(500, "License has expired" ).toString()).build();
+			return Response.status(503).entity( new io.swagger.model.Error(503, "License has expired" ).toString()).build();
 		} else {
 			return Response.status(200).entity("OK").build();
 		}

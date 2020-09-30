@@ -71,16 +71,10 @@ public class PredictApi  {
 			required=false,
 			defaultValue="CCCCC=O")
 			@QueryParam("molecule") String molecule,
-			
-			@ApiParam(value = "**(Depricated)** Compound structure notation using SMILES notation", required=false)
-			@QueryParam("smiles") String smiles,
-			
+
 			@Context SecurityContext securityContext)
 					throws NotFoundException {
-		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
-			return delegate.predictPost(smiles,securityContext);
-		else 
-			return delegate.predictPost(molecule, securityContext);
+		return delegate.predictPost(molecule, securityContext);
 	}
 
 
@@ -105,38 +99,32 @@ public class PredictApi  {
 			required=false,
 			defaultValue="CCCCC=O")
 			@QueryParam("molecule") String molecule, // MOLECULE
-			
-			@ApiParam(value = "**(Depricated)** Compound structure notation using SMILES notation", required=false)
-			@QueryParam("smiles") String smiles, // SMILES - DEPRECATED
-			
+
 			@ApiParam(value = "Image width (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageWidth") 
 			int imageWidth,
-			
+
 			@ApiParam(value = "Image height (min 50 pixels, max 5000 pixels)", allowableValues="range[50,5000]")
 			@DefaultValue("600") @QueryParam("imageHeight") 
 			int imageHeight,
-			
+
 			@ApiParam(value = "Write p-values in figure")
 			@DefaultValue("false") @QueryParam("addPvals") 
 			boolean addPvals,
-			
+
 			@ApiParam(value = "Add title to the image (using the model name)")
 			@DefaultValue("false") @QueryParam("addTitle") 
 			boolean addTitle,
-			
+
 			@Context SecurityContext securityContext ) {
-		if (smiles!=null && !smiles.isEmpty()) // TODO - remove in newer versions!
-			return delegate.predictImagePost(smiles, imageWidth, imageHeight, addPvals, addTitle, securityContext);
-		else
-			return delegate.predictImagePost(molecule, imageWidth, imageHeight, addPvals, addTitle, securityContext);
+		return delegate.predictImagePost(molecule, imageWidth, imageHeight, addPvals, addTitle, securityContext);
 	}
-	
+
 	@Path("/health")
 	@GET
 	@ApiResponses(value = { 
 			@ApiResponse(code = 200, message = "OK"),
-			@ApiResponse(code = 500, message = "Prediction error", response = Error.class),
+			@ApiResponse(code = 503, message = "Service down", response = Error.class),
 	})
 	public Response health() {
 		return Predict.checkHealth();
