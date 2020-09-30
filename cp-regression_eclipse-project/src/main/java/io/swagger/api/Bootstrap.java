@@ -22,7 +22,7 @@ public class Bootstrap extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException {
 		Info info = new Info()
 				.title("Conformal Prediction Regression Server")
-				.version("0.1.0")
+				.version("0.1.1")
 				.description("Service that deploys a CPSign regression model and allows for predictions to be made by the deployed model.")
 				.termsOfService("")
 				.contact(new Contact()

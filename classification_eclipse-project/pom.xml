@@ -1,18 +1,19 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.arosbio</groupId>
 	<artifactId>cpsign.predict.rest.classification</artifactId>
 	<packaging>war</packaging>
 	<name>CPSign.Predict.Classification</name>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 
 	<properties>
 		<cpsign.version>1.5.0-beta2</cpsign.version>
 		<java.version>1.8</java.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<swagger-core-version>1.5.21</swagger-core-version>
+		<swagger-core-version>1.6.2</swagger-core-version> <!-- 1.5.21 -->
 		<jetty-version>9.2.9.v20150224</jetty-version>
 		<jersey2-version>2.22.2</jersey2-version>
 		<jackson-version>2.8.9</jackson-version>
@@ -52,9 +53,9 @@
 			<build>
 				<plugins>
 					<plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <version>3.1.0</version>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>3.1.0</version>
 						<configuration>
 							<warName>ROOT</warName>
 						</configuration>
@@ -185,7 +186,8 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -315,12 +317,12 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1.1</version>
 		</dependency>
-		<!--  https://stackoverflow.com/a/52502208  -->
+		<!-- https://stackoverflow.com/a/52502208 -->
 		<dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.3.0</version>
-        </dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.0</version>
+		</dependency>
 
 
 		<!-- Bean Validation API support -->
@@ -328,6 +330,14 @@
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 			<version>1.1.0.Final</version>
+		</dependency>
+
+		<!-- System rules - make it possible to set Environment variables -->
+		<dependency>
+			<groupId>com.github.stefanbirkner</groupId>
+			<artifactId>system-rules</artifactId>
+			<version>1.19.0</version>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>

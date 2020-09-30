@@ -22,7 +22,7 @@ public class Bootstrap extends HttpServlet {
 	public void init(ServletConfig config) throws ServletException {
 		Info info = new Info()
 				.title("Venn-ABERS Prediction Server")
-				.version("0.1.0")
+				.version("0.1.1")
 				.description("Service that deploys a CPSign Venn-ABERS model and allows for predictions to be made by the deployed model.")
 				.termsOfService("")
 				.contact(new Contact()
