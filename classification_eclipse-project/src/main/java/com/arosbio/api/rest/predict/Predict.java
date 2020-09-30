@@ -41,6 +41,9 @@ import io.swagger.model.PValueMapping;
 
 public class Predict {
 
+	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
+	public static final String LICENSE_FILE_ENV_VARIABLE = "LICENSE_FILE";
+	
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
 	private static Response serverErrorResponse = null;
 	private static SignaturesCPClassification model;
@@ -53,9 +56,9 @@ public class Predict {
 
 	static {
 
-		final String license_file = System.getenv("LICENSE_FILE")!=null ? System.getenv("LICENSE_FILE") : "/opt/app-root/modeldata/license.license";
+		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null ? System.getenv(LICENSE_FILE_ENV_VARIABLE) : "/opt/app-root/modeldata/license.license";
 
-		final String model_file = System.getenv("MODEL_FILE")!=null?System.getenv("MODEL_FILE"):"/opt/app-root/modeldata/model.jar";
+		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE):"/opt/app-root/modeldata/model.jar";
 
 		// Get the root logger for cpsign
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");

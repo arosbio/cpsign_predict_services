@@ -40,9 +40,5 @@ public class Utils {
 			throw new MalformedURLException("Could not decode text");
 		}
 	}
-	
-	public static double roundTo3digits(double val){
-		return Math.round(val*1000.0)/1000.0;
-	}
 
 }

@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 
 import org.json.simple.JSONObject;
 
+import com.arosbio.commons.MathUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.annotations.ApiModel;
@@ -43,7 +44,7 @@ public class PValueMapping {
 
 	public PValueMapping(String label, Double pvalue) {
 		this.label = label;
-		this.pValue = round(pvalue);
+		this.pValue = MathUtils.roundTo3significantFigures(pvalue);
 	}
 	
 	@Override
@@ -76,7 +77,4 @@ public class PValueMapping {
 		return jsonResponse.toJSONString();
 	}
 	
-	private static double round(double val){
-		return Math.round(val*1000.0)/1000.0;
-	}
 }
