@@ -5,7 +5,7 @@
 
 	<listener>
  		<description>Startup CPSignFactory and load in the model</description>
- 		<listener-class>com.genettasoft.api.StartupPredictListener</listener-class>
+ 		<listener-class>com.arosbio.api.rest.StartupPredictListener</listener-class>
 	</listener>
 	
 	<servlet>
@@ -78,7 +78,7 @@
 
 	<servlet-mapping>
 		<servlet-name>SwaggerServlet</servlet-name>
-		<url-pattern>/v1/*</url-pattern>
+		<url-pattern>/v2/*</url-pattern>
 	</servlet-mapping>
 
 	<filter>

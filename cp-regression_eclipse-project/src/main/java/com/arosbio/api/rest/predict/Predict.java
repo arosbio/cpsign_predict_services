@@ -33,7 +33,8 @@ import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
 import com.google.common.collect.Range;
 
-import io.swagger.model.BadRequestError;
+import io.swagger.api.model.BadRequestError;
+import io.swagger.api.model.ErrorResponse;
 
 public class Predict {
 
@@ -80,7 +81,7 @@ public class Predict {
 		} catch (RuntimeException | IOException re){
 			errorMessage = re.getMessage();
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
-			serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, re.getMessage() ).toString() ).build();
+			serverErrorResponse = Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, re.getMessage() ).toString() ).build();
 		}
 		// load the model - only if no error previously encountered
 		if (serverErrorResponse == null) {
@@ -99,7 +100,7 @@ public class Predict {
 			} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
 				errorMessage = e.getMessage();
 				logger.error("Could not load the model", e);
-				serverErrorResponse = Response.status(500).entity( new io.swagger.model.Error(500, "Server error - could not load the built model").toString() ).build();
+				serverErrorResponse = Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, "Server error - could not load the built model").toString() ).build();
 			}
 		}
 	}
@@ -143,7 +144,7 @@ public class Predict {
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Response.status(500).entity( 
-					new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() )
+					new io.swagger.api.model.ErrorResponse(500, "Could not generate SMILES for molecule").toString() )
 					.build();
 		}
 
@@ -152,10 +153,10 @@ public class Predict {
 		try {
 			CPRegressionPrediction res = model.predict(molToPredict, confidence);
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
-			return Response.status(200).entity( new io.swagger.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()).toString() ).build();
+			return Response.status(200).entity( new io.swagger.api.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()).toString() ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
-			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
+			return Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, "Server error - error during prediction").toString() ).build();
 		} finally{
 			CDKMutexLock.releaseLock();
 		}
@@ -197,7 +198,7 @@ public class Predict {
 				return Response.ok( new ByteArrayInputStream(imageData) ).build();
 			} catch (Exception e) {
 				logger.info("Failed returning empty image for empty smiles");
-				return Response.status(500).entity(new io.swagger.model.Error(500, "Server error").toJSON()).build();
+				return Response.status(500).entity(new ErrorResponse(500, "Server error")).build();
 			}
 		}
 
@@ -239,7 +240,7 @@ public class Predict {
 //			molOrFail = ChemUtils.parseMolecule(molecule);
 //			if (molOrFail.getValue1() != null)
 //				return molOrFail.getValue1();
-//		} catch (Exception | Error e) {
+//		} catch (Exception | ErrorResponse e) {
 //			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
 //			return Response.status(400).entity(
 //					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
@@ -254,7 +255,7 @@ public class Predict {
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Response.status(500).entity( 
-					new io.swagger.model.Error(500, "Could not generate SMILES for molecule").toString() )
+					new io.swagger.api.model.ErrorResponse(500, "Could not generate SMILES for molecule").toString() )
 					.build();
 		}
 
@@ -291,16 +292,16 @@ public class Predict {
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
-			return Response.status(500).entity( new io.swagger.model.Error(500, "Server error - error during prediction").toString() ).build();
+			return Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, "Server error - error during prediction").toString() ).build();
 		} finally {
 			CDKMutexLock.releaseLock();
 		}
 	}
 	public static Response checkHealth() {
 		if( errorMessage != null) {
-			return Response.status(500).entity( new io.swagger.model.Error(500, errorMessage ).toString()).build();
+			return Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, errorMessage ).toString()).build();
 		} else if (! PermissionsCheck.check()) {
-			return Response.status(500).entity( new io.swagger.model.Error(500, "License has expired" ).toString()).build();
+			return Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, "License has expired" ).toString()).build();
 		} else {
 			return Response.status(200).entity("OK").build();
 		}

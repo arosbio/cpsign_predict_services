@@ -5,8 +5,8 @@ import javax.ws.rs.core.SecurityContext;
 
 import com.arosbio.api.rest.predict.Predict;
 
-import io.swagger.api.NotFoundException;
 import io.swagger.api.PredictApiService;
+import io.swagger.api.utils.NotFoundException;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public class PredictApiServiceImpl extends PredictApiService {
     @Override

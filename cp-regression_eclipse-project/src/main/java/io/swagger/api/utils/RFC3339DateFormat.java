@@ -1,10 +1,10 @@
-package io.swagger.api;
-
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
-import com.fasterxml.jackson.databind.util.ISO8601Utils;
+package io.swagger.api.utils;
 
 import java.text.FieldPosition;
 import java.util.Date;
+
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 
 public class RFC3339DateFormat extends ISO8601DateFormat {
 
@@ -13,7 +13,7 @@ public class RFC3339DateFormat extends ISO8601DateFormat {
 	// Same as ISO8601DateFormat but serializing milliseconds.
     @Override
     public StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition) {
-        String value = ISO8601Utils.format(date, true);
+        String value = new StdDateFormat().format(date);
         toAppendTo.append(value);
         return toAppendTo;
     }

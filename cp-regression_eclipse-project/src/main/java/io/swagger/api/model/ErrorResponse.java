@@ -11,31 +11,31 @@
  */
 
 
-package io.swagger.model;
+package io.swagger.api.model;
 
 import java.util.Objects;
 
-import org.json.simple.JSONObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+//import io.swagger.annotations.ApiModel;
+//import io.swagger.annotations.ApiModelProperty;
 
 /**
- * Error
+ * ErrorResponse
  */
-@ApiModel(description = "Error")
-public class Error {
+//@ApiModel(description = "ErrorResponse")
+public class ErrorResponse {
 	@JsonProperty("code")
-	@ApiModelProperty(required = true, value = "HTTP status code", example="400")
+//	@ApiModelProperty(required = true, value = "HTTP status code", example="400")
 	private final Integer code;
 
 	@JsonProperty("message")
-	@ApiModelProperty(required = true, value = "Error message", example="Invalid argument")
+//	@ApiModelProperty(required = true, value = "Error message", example="Invalid argument")
 	private final String message;
 
-	public Error(int code, String message) {
+	public ErrorResponse(int code, String message) {
 		this.code = code;
 		this.message = message;
 	}
@@ -48,7 +48,7 @@ public class Error {
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		Error error = (Error) o;
+		ErrorResponse error = (ErrorResponse) o;
 		return Objects.equals(this.code, error.code) &&
 				Objects.equals(this.message, error.message);
 	}
@@ -58,19 +58,23 @@ public class Error {
 		return Objects.hash(code, message);
 	}
 
-	@SuppressWarnings("unchecked")
-	public JSONObject toJSON(){
-		JSONObject jsonResponse = new JSONObject();
-
-		jsonResponse.put("code", code);
-		jsonResponse.put("message", message);
-
-		return jsonResponse;
-	}
+//	public JsonObject toJSON(){
+//		JsonObject jsonResponse = new JsonObject();
+//
+//		jsonResponse.put("code", code);
+//		jsonResponse.put("message", message);
+//
+//		return jsonResponse;
+//	}
 	
 	@Override
 	public String toString() {
-		return toJSON().toJSONString();
+		try {
+			return new ObjectMapper().writeValueAsString(this);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			return "Error Reponse code=" + code + ", msg=" + message;
+		}
 	}
 
 }

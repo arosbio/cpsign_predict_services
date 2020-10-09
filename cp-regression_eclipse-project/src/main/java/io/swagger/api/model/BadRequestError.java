@@ -11,27 +11,22 @@
  */
 
 
-package io.swagger.model;
+package io.swagger.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.json.simple.JSONObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 
 /**
  * BadRequestError
  */
-@ApiModel(description = "BadRequestError")
-public class BadRequestError extends Error {
+//@ApiModel(description = "BadRequestError")
+public class BadRequestError extends ErrorResponse {
 
 	@JsonProperty("fields")
-	@ApiModelProperty(required = true, value = "Relevant field(s)")
+//	@ApiModelProperty(required = true, value = "Relevant field(s)")
 	private List<String> fields = new ArrayList<String>();
 
 	public BadRequestError(int code, String message, List<String> fields) {
@@ -58,11 +53,8 @@ public class BadRequestError extends Error {
 	}
 
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public String toString() {
-		JSONObject jsonResponse = super.toJSON();
-		jsonResponse.put("fields", fields);
-		return jsonResponse.toJSONString();
+		return super.toString();
 	}
 }

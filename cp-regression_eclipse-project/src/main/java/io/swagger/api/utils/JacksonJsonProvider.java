@@ -1,9 +1,9 @@
-package io.swagger.api;
+package io.swagger.api.utils;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
+import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.joda.*;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
@@ -22,7 +22,7 @@ public class JacksonJsonProvider extends JacksonJaxbJsonProvider {
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .registerModule(new JodaModule())
-            .setDateFormat(new RFC3339DateFormat());
+            .setDateFormat(new StdDateFormat());
 
         setMapper(objectMapper);
     }
