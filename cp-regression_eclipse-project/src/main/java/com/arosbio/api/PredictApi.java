@@ -1,6 +1,5 @@
-package io.swagger.api;
+package com.arosbio.api;
 
-import javax.servlet.ServletConfig;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -16,50 +15,53 @@ import javax.ws.rs.core.SecurityContext;
 
 import org.slf4j.Logger;
 
-import com.arosbio.api.rest.predict.Predict;
+import com.arosbio.api.model.BadRequestError;
+import com.arosbio.api.model.ErrorResponse;
+import com.arosbio.api.model.RegressionResult;
+import com.arosbio.api.utils.NotFoundException;
+import com.arosbio.impl.Predict;
 
-import io.swagger.api.factories.PredictApiServiceFactory;
-import io.swagger.api.model.BadRequestError;
-import io.swagger.api.model.ErrorResponse;
-import io.swagger.api.model.RegressionResult;
-import io.swagger.api.utils.NotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("/")
-
-//@Api()
+@Path("")
 public class PredictApi  {
-	private final PredictApiService delegate;
+//	private final PredictApiService delegate;
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(PredictApi.class);
-
-	public PredictApi(@Context ServletConfig servletContext) {
-		PredictApiService delegate = null;
-
-		if (servletContext != null) {
-			String implClass = servletContext.getInitParameter("PredictApi.implementation");
-			if (implClass != null && !"".equals(implClass.trim())) {
-				try {
-					delegate = (PredictApiService) Class.forName(implClass).newInstance();
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-			} 
-		}
-
-		if (delegate == null) {
-			delegate = PredictApiServiceFactory.getPredictApi();
-		}
-
-		this.delegate = delegate;
+	
+	static {
+		// Causes init of the Predict-class and loads the model/license
+		new Predict();
 	}
+
+//	private Predict service = new Predict();
+//	public PredictApi(@Context ServletConfig servletContext) {
+//		PredictApiService delegate = null;
+//
+//		if (servletContext != null) {
+//			String implClass = servletContext.getInitParameter("PredictApi.implementation");
+//			if (implClass != null && !"".equals(implClass.trim())) {
+//				try {
+//					delegate = (PredictApiService) Class.forName(implClass).newInstance();
+//				} catch (Exception e) {
+//					throw new RuntimeException(e);
+//				}
+//			} 
+//		}
+//
+//		if (delegate == null) {
+//			delegate = PredictApiServiceFactory.getPredictApi();
+//		}
+//
+//		this.delegate = delegate;
+//	}
 
 	@Path("/predict")
 	@GET
-	@Consumes({ "multipart/form-data" })
+	@Consumes({ MediaType.MULTIPART_FORM_DATA })
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Operation(
 			summary = "Make a prediction on a given molecule", 
@@ -90,13 +92,13 @@ public class PredictApi  {
 
 			@Context SecurityContext securityContext)
 					throws NotFoundException {
-		return delegate.predictGet(molecule,confidence,securityContext);
+		return Predict.doPredict(molecule, confidence); //predictGet(molecule,confidence,securityContext);
 	}
 
 
 	@Path("/predictImage")
 	@GET
-	@Consumes({ "multipart/form-data" })
+	@Consumes({ MediaType.MULTIPART_FORM_DATA })
 	@Produces({ "image/png" }) //, MediaType.APPLICATION_JSON
 	@Operation(
 			summary = "Make a prediction image for the given molecule",
@@ -136,7 +138,7 @@ public class PredictApi  {
 			@Context SecurityContext securityContext ) {
 		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
 
-		return delegate.predictImageGet(molecule, imageWidth, imageHeight, confidence, addTitle, securityContext);
+		return Predict.doPredictImage(molecule, imageWidth, imageHeight, confidence, addTitle); //delegate.predictImageGet(molecule, imageWidth, imageHeight, confidence, addTitle, securityContext);
 	}
 
 	@Path("/health")

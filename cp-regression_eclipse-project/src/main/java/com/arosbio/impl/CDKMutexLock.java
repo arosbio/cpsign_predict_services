@@ -1,4 +1,4 @@
-package com.arosbio.api.rest.predict;
+package com.arosbio.impl;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

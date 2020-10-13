@@ -1,0 +1,13 @@
+openAPI:
+  info:
+    version: '1.0.3'
+    title: CPSign Regression Prediction Service
+    description: 'Service that deploys a CPSign regression model and allows for predictions to be made by the deployed model.
+      The service also comes bundled with an interactive drawing interface that can be accessed using <serice-url>/draw where
+      molecules can be drawn and predicted interactively.'
+    contact:
+      name: Aros Bio
+      email: ola@arosbio.com
+      url: arosbio.com/
+    license:
+      name: "© Aros Bio - All rights reserved"

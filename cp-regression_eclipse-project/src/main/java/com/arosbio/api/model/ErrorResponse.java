@@ -11,7 +11,7 @@
  */
 
 
-package io.swagger.api.model;
+package com.arosbio.api.model;
 
 import java.util.Objects;
 

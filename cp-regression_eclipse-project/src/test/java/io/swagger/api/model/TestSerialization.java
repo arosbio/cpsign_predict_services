@@ -2,6 +2,8 @@ package io.swagger.api.model;
 
 import org.junit.Test;
 
+import com.arosbio.api.model.ErrorResponse;
+
 public class TestSerialization {
 	
 	@Test

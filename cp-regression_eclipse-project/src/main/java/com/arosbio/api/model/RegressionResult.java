@@ -1,23 +1,18 @@
-package io.swagger.api.model;
+package com.arosbio.api.model;
 
 import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
-import com.arosbio.api.rest.predict.Utils;
+import com.arosbio.impl.Utils;
 import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
 
-//import io.swagger.annotations.ApiModel;
-//import io.swagger.annotations.ApiModelProperty;
-
-//@ApiModel
 public class RegressionResult {
 	
 	@JsonProperty("smiles")
-//	@ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction", example="CCCCC=O")
 	@NotNull
 	private final String smiles;
 	

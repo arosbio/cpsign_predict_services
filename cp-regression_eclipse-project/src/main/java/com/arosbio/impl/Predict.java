@@ -1,4 +1,4 @@
-package com.arosbio.api.rest.predict;
+package com.arosbio.impl;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -19,6 +19,8 @@ import org.javatuples.Pair;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
+import com.arosbio.api.model.BadRequestError;
+import com.arosbio.api.model.ErrorResponse;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
 import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.arosbio.chem.io.out.fields.ColorGradientField;
@@ -26,6 +28,7 @@ import com.arosbio.chem.io.out.fields.PredictionIntervalField;
 import com.arosbio.chem.io.out.fields.TitleField;
 import com.arosbio.commons.auth.PermissionsCheck;
 import com.arosbio.depict.GradientFactory;
+import com.arosbio.io.UriUtils;
 import com.arosbio.modeling.CPSignFactory;
 import com.arosbio.modeling.cheminf.SignaturesCPRegression;
 import com.arosbio.modeling.cheminf.SignificantSignature;
@@ -33,16 +36,13 @@ import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
 import com.google.common.collect.Range;
 
-import io.swagger.api.model.BadRequestError;
-import io.swagger.api.model.ErrorResponse;
-
 public class Predict {
 
 	public static final String DEFAULT_LICENSE_PATH = "/opt/app-root/modeldata/license.license";
 	public static final String DEFAULT_MODEL_PATH = "/opt/app-root/modeldata/model.jar";
 	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
 	public static final String LICENSE_FILE_ENV_VARIABLE = "LICENSE_FILE";
-	
+
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
 	private static Response serverErrorResponse = null;
 	private static SignaturesCPRegression model;
@@ -50,25 +50,24 @@ public class Predict {
 
 	private static final int MIN_IMAGE_SIZE = 50;
 	private static final int MAX_IMAGE_SIZE = 5000;
-	
+
 	private static String errorMessage = null;
 
 	static {
-		final String license_file =  
-				System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null?System.getenv(LICENSE_FILE_ENV_VARIABLE):DEFAULT_LICENSE_PATH;
-		final String model_file = 
-				System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE):DEFAULT_MODEL_PATH;
-		// Get the root logger for cpsign
+		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null?System.getenv(LICENSE_FILE_ENV_VARIABLE):DEFAULT_LICENSE_PATH;
+		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE):DEFAULT_MODEL_PATH;
+
+		// Get the root logger for cpsign TODO - change!
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
-		if(cpsingLogger instanceof ch.qos.logback.classic.Logger) {
+		if (cpsingLogger instanceof ch.qos.logback.classic.Logger) {
 			ch.qos.logback.classic.Logger cpsignRoot = (ch.qos.logback.classic.Logger) cpsingLogger;
 			// Disable all cpsign-output
 			cpsignRoot.setLevel(ch.qos.logback.classic.Level.OFF);
 		}
 
-		// Enable debug output for this library
-		Logger predictServerLogger = org.slf4j.LoggerFactory.getLogger("com.arosbio.api.rest");
-		if(predictServerLogger instanceof ch.qos.logback.classic.Logger) {
+		// Enable debug output for this library TODO - change!
+		Logger predictServerLogger = org.slf4j.LoggerFactory.getLogger("com.arosbio.impl");
+		if (predictServerLogger instanceof ch.qos.logback.classic.Logger) {
 			ch.qos.logback.classic.Logger cpLogDLogger = (ch.qos.logback.classic.Logger) predictServerLogger;
 			cpLogDLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
 		}
@@ -81,26 +80,43 @@ public class Predict {
 		} catch (RuntimeException | IOException re){
 			errorMessage = re.getMessage();
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
-			serverErrorResponse = Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, re.getMessage() ).toString() ).build();
+			serverErrorResponse = Response.status(500).entity(
+					new ErrorResponse(500, "No license found at server init - service needs to be redeployed with a valid license")
+					).build();
 		}
 		// load the model - only if no error previously encountered
-		if (serverErrorResponse == null) {
+		if (serverErrorResponse != null) {
+			URI modelURI = null;
 			try {
 				logger.debug("Trying to load in the model");
-				URI modelURI = new File(model_file).toURI();
+				modelURI = new File(model_file).toURI();
 				if (modelURI == null)
 					throw new IOException("did not locate the model file");
-				if ( factory.supportEncryption() ) {
-					model = (SignaturesCPRegression) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
+				if (!UriUtils.canReadFromURI(modelURI)) {
+					throw new IllegalArgumentException("Cannot read from URI: " + modelURI);
 				}
-				else {
-					model = (SignaturesCPRegression) ModelLoader.loadModel(modelURI, null);
+			} catch (Exception e) {
+				logger.error("No model could be loaded", e);
+				serverErrorResponse = Response.status(500).entity(
+						new ErrorResponse(500, "No model found at server init - service needs to be re-depolyed with a valid model config")
+						).build();
+			}
+
+			if (serverErrorResponse != null) {
+
+				try {
+					if ( factory.supportEncryption() ) {
+						model = (SignaturesCPRegression) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
+					}
+					else {
+						model = (SignaturesCPRegression) ModelLoader.loadModel(modelURI, null);
+					}
+					logger.info("Loaded model");
+				} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
+					errorMessage = e.getMessage();
+					logger.error("Could not load the model", e);
+					serverErrorResponse = Response.status(500).entity( new ErrorResponse(500, "Server error - could not load the built model").toString() ).build();
 				}
-				logger.info("Loaded model");
-			} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
-				errorMessage = e.getMessage();
-				logger.error("Could not load the model", e);
-				serverErrorResponse = Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, "Server error - could not load the built model").toString() ).build();
 			}
 		}
 	}
@@ -144,7 +160,7 @@ public class Predict {
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Response.status(500).entity( 
-					new io.swagger.api.model.ErrorResponse(500, "Could not generate SMILES for molecule").toString() )
+					new com.arosbio.api.model.ErrorResponse(500, "Could not generate SMILES for molecule").toString() )
 					.build();
 		}
 
@@ -153,10 +169,10 @@ public class Predict {
 		try {
 			CPRegressionPrediction res = model.predict(molToPredict, confidence);
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
-			return Response.status(200).entity( new io.swagger.api.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()).toString() ).build();
+			return Response.status(200).entity( new com.arosbio.api.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()).toString() ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
-			return Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, "Server error - error during prediction").toString() ).build();
+			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, "Server error - error during prediction").toString() ).build();
 		} finally{
 			CDKMutexLock.releaseLock();
 		}
@@ -226,26 +242,26 @@ public class Predict {
 					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")).toString() ).
 					build();
 		}
-		
+
 		// Clean the molecule-string from URL encoding
-//		try {
-//			molecule = URLDecoder.decode(molecule, URL_ENCODING);
-//		} catch (Exception e) {
-//			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
-//		}
-//
-//		// try to parse an IAtomContainer - or fail
-//		Pair<IAtomContainer, Response> molOrFail = null;
-//		try {
-//			molOrFail = ChemUtils.parseMolecule(molecule);
-//			if (molOrFail.getValue1() != null)
-//				return molOrFail.getValue1();
-//		} catch (Exception | ErrorResponse e) {
-//			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
-//			return Response.status(400).entity(
-//					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
-//		}
-//		IAtomContainer molToPredict=molOrFail.getValue0();
+		//		try {
+		//			molecule = URLDecoder.decode(molecule, URL_ENCODING);
+		//		} catch (Exception e) {
+		//			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
+		//		}
+		//
+		//		// try to parse an IAtomContainer - or fail
+		//		Pair<IAtomContainer, Response> molOrFail = null;
+		//		try {
+		//			molOrFail = ChemUtils.parseMolecule(molecule);
+		//			if (molOrFail.getValue1() != null)
+		//				return molOrFail.getValue1();
+		//		} catch (Exception | ErrorResponse e) {
+		//			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
+		//			return Response.status(400).entity(
+		//					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
+		//		}
+		//		IAtomContainer molToPredict=molOrFail.getValue0();
 
 		// Generate SMILES to have in the response
 		String smiles = null;
@@ -255,7 +271,7 @@ public class Predict {
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Response.status(500).entity( 
-					new io.swagger.api.model.ErrorResponse(500, "Could not generate SMILES for molecule").toString() )
+					new com.arosbio.api.model.ErrorResponse(500, "Could not generate SMILES for molecule").toString() )
 					.build();
 		}
 
@@ -292,19 +308,19 @@ public class Predict {
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
-			return Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, "Server error - error during prediction").toString() ).build();
+			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, "Server error - error during prediction").toString() ).build();
 		} finally {
 			CDKMutexLock.releaseLock();
 		}
 	}
 	public static Response checkHealth() {
 		if( errorMessage != null) {
-			return Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, errorMessage ).toString()).build();
+			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, errorMessage ).toString()).build();
 		} else if (! PermissionsCheck.check()) {
-			return Response.status(500).entity( new io.swagger.api.model.ErrorResponse(500, "License has expired" ).toString()).build();
+			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, "License has expired" ).toString()).build();
 		} else {
 			return Response.status(200).entity("OK").build();
 		}
-			
+
 	}
 }

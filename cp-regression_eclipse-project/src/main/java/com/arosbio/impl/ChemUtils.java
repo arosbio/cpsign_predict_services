@@ -1,4 +1,4 @@
-package com.arosbio.api.rest.predict;
+package com.arosbio.impl;
 
 import java.io.ByteArrayInputStream;
 

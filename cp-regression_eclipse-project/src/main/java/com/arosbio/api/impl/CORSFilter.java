@@ -1,4 +1,4 @@
-package io.swagger.api.impl;
+package com.arosbio.api.impl;
 
 import java.io.IOException;
 

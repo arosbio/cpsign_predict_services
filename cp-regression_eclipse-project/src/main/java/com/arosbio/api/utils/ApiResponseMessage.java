@@ -1,4 +1,4 @@
-package io.swagger.api.utils;
+package com.arosbio.api.utils;
 
 import javax.xml.bind.annotation.XmlTransient;
 
