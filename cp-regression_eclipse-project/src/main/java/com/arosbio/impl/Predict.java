@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 
 import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
+import com.arosbio.api.model.ServiceRunning;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
 import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.arosbio.chem.io.out.fields.ColorGradientField;
@@ -51,13 +52,13 @@ public class Predict {
 	private static final int MIN_IMAGE_SIZE = 50;
 	private static final int MAX_IMAGE_SIZE = 5000;
 
-	private static String errorMessage = null;
+//	private static String errorMessage = null;
 
 	static {
 		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null?System.getenv(LICENSE_FILE_ENV_VARIABLE):DEFAULT_LICENSE_PATH;
 		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE):DEFAULT_MODEL_PATH;
 
-		// Get the root logger for cpsign TODO - change!
+		// Get the root logger for cpsign 
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
 		if (cpsingLogger instanceof ch.qos.logback.classic.Logger) {
 			ch.qos.logback.classic.Logger cpsignRoot = (ch.qos.logback.classic.Logger) cpsingLogger;
@@ -65,7 +66,7 @@ public class Predict {
 			cpsignRoot.setLevel(ch.qos.logback.classic.Level.OFF);
 		}
 
-		// Enable debug output for this library TODO - change!
+		// Enable debug output for this library
 		Logger predictServerLogger = org.slf4j.LoggerFactory.getLogger("com.arosbio.impl");
 		if (predictServerLogger instanceof ch.qos.logback.classic.Logger) {
 			ch.qos.logback.classic.Logger cpLogDLogger = (ch.qos.logback.classic.Logger) predictServerLogger;
@@ -73,19 +74,19 @@ public class Predict {
 		}
 
 		// Instantiate the factory 
-		try{
+		try {
 			URI license_uri = new File(license_file).toURI();
 			factory = new CPSignFactory( license_uri );
 			logger.info("Initiated the CPSignFactory");
 		} catch (RuntimeException | IOException re){
-			errorMessage = re.getMessage();
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
 			serverErrorResponse = Response.status(500).entity(
-					new ErrorResponse(500, "No license found at server init - service needs to be redeployed with a valid license")
+					new ErrorResponse(500, "No license found at server init - service needs to be re-deployed with a valid license")
 					).build();
 		}
+		
 		// load the model - only if no error previously encountered
-		if (serverErrorResponse != null) {
+		if (serverErrorResponse == null) {
 			URI modelURI = null;
 			try {
 				logger.debug("Trying to load in the model");
@@ -102,7 +103,7 @@ public class Predict {
 						).build();
 			}
 
-			if (serverErrorResponse != null) {
+			if (serverErrorResponse == null) {
 
 				try {
 					if ( factory.supportEncryption() ) {
@@ -113,9 +114,8 @@ public class Predict {
 					}
 					logger.info("Loaded model");
 				} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
-					errorMessage = e.getMessage();
 					logger.error("Could not load the model", e);
-					serverErrorResponse = Response.status(500).entity( new ErrorResponse(500, "Server error - could not load the built model").toString() ).build();
+					serverErrorResponse = Response.status(500).entity( new ErrorResponse(500, "Model could not be loaded at server init ("+e.getMessage()+") - service needs to be re-deployed") ).build();
 				}
 			}
 		}
@@ -125,12 +125,12 @@ public class Predict {
 		logger.debug("got a prediction task, conf=" + confidence);
 
 		if (serverErrorResponse != null)
-			return serverErrorResponse;
+			return Utils.clone(serverErrorResponse);
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
 			return Response.status(400).
-					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).
+					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")) ).
 					build();
 		}
 
@@ -139,7 +139,7 @@ public class Predict {
 			decodedMolData = Utils.decodeURL(molecule);
 		} catch (MalformedURLException e) {
 			return Response.status(400).
-					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).
+					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule"))).
 					build();
 		} 
 
@@ -148,7 +148,7 @@ public class Predict {
 			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
 		} catch (IllegalArgumentException e) {
 			return Response.status(400).
-					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")).toString() ).
+					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")) ).
 					build();
 		}
 
@@ -160,7 +160,7 @@ public class Predict {
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Response.status(500).entity( 
-					new com.arosbio.api.model.ErrorResponse(500, "Could not generate SMILES for molecule").toString() )
+					new com.arosbio.api.model.ErrorResponse(500, "Could not generate SMILES for molecule") )
 					.build();
 		}
 
@@ -169,10 +169,10 @@ public class Predict {
 		try {
 			CPRegressionPrediction res = model.predict(molToPredict, confidence);
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
-			return Response.status(200).entity( new com.arosbio.api.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()).toString() ).build();
+			return Response.status(200).entity( new com.arosbio.api.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()) ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
-			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, "Server error - error during prediction").toString() ).build();
+			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, "Server error - error during prediction") ).build();
 		} finally{
 			CDKMutexLock.releaseLock();
 		}
@@ -180,28 +180,34 @@ public class Predict {
 
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, Double confidence, boolean addTitle) {
 		logger.debug("Got predictImage request: imageWidth="+imageWidth + ", imageHeight="+imageHeight+", conf="+confidence);
-		if(serverErrorResponse != null)
-			return serverErrorResponse;
+		if (serverErrorResponse != null)
+			return Utils.clone(serverErrorResponse);
 
 		if (confidence != null && (confidence < 0 || confidence > 1)){
 			logger.warn("invalid argument confidence=" + confidence);
-			return Response.status(400).entity(new BadRequestError(400, "invalid argument", Arrays.asList("confidence")).toString()).build();
+			return Response.status(400).entity(
+					new BadRequestError(400, "invalid argument", Arrays.asList("confidence"))
+					).build();
 		}
 
 		if (imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
 			logger.warn("Failing execution due to too small image required");
-			return Response.status(400).entity(new BadRequestError(400,"image height and width must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+			return Response.status(400).entity(
+					new BadRequestError(400,"image height and width must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight"))
+					).build();
 		}
 
 		if (imageWidth > MAX_IMAGE_SIZE || imageHeight> MAX_IMAGE_SIZE){
 			logger.warn("Failing execution due to too large image requested");
-			return Response.status(400).entity(new BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")).toString()).build();
+			return Response.status(400).entity(
+					new BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight"))
+					).build();
 		}
 
 		// Return empty img if no smiles sent
 		if (molecule==null || molecule.isEmpty()){
 			// return an empty img
-			try{
+			try {
 				BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
 				Graphics2D g2d = image.createGraphics();
 				g2d.setColor(Color.WHITE);
@@ -221,7 +227,7 @@ public class Predict {
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
 			return Response.status(400).
-					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")).toString() ).
+					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")) ).
 					build();
 		}
 
@@ -230,7 +236,7 @@ public class Predict {
 			decodedMolData = Utils.decodeURL(molecule);
 		} catch (MalformedURLException e) {
 			return Response.status(400).
-					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).
+					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule"))).
 					build();
 		} 
 
@@ -239,29 +245,9 @@ public class Predict {
 			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
 		} catch (IllegalArgumentException e) {
 			return Response.status(400).
-					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")).toString() ).
+					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")) ).
 					build();
 		}
-
-		// Clean the molecule-string from URL encoding
-		//		try {
-		//			molecule = URLDecoder.decode(molecule, URL_ENCODING);
-		//		} catch (Exception e) {
-		//			return Response.status(400).entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule")).toString()).build();
-		//		}
-		//
-		//		// try to parse an IAtomContainer - or fail
-		//		Pair<IAtomContainer, Response> molOrFail = null;
-		//		try {
-		//			molOrFail = ChemUtils.parseMolecule(molecule);
-		//			if (molOrFail.getValue1() != null)
-		//				return molOrFail.getValue1();
-		//		} catch (Exception | ErrorResponse e) {
-		//			logger.debug("Unhandled exception in Parsing of molecule input:\n\t"+Utils.getStackTrace(e));
-		//			return Response.status(400).entity(
-		//					new BadRequestError(400, "Faulty molecule input", Arrays.asList("molecule"))).build();
-		//		}
-		//		IAtomContainer molToPredict=molOrFail.getValue0();
 
 		// Generate SMILES to have in the response
 		String smiles = null;
@@ -271,7 +257,7 @@ public class Predict {
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Response.status(500).entity( 
-					new com.arosbio.api.model.ErrorResponse(500, "Could not generate SMILES for molecule").toString() )
+					new ErrorResponse(500, "Could not generate SMILES for molecule: " + e.getMessage()) )
 					.build();
 		}
 
@@ -308,19 +294,20 @@ public class Predict {
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
-			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, "Server error - error during prediction").toString() ).build();
+			return Response.status(500).entity( 
+					new ErrorResponse(500, "Error during prediction: " + e.getMessage()) 
+					).build();
 		} finally {
 			CDKMutexLock.releaseLock();
 		}
 	}
 	public static Response checkHealth() {
-		if( errorMessage != null) {
-			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, errorMessage ).toString()).build();
+		if( serverErrorResponse != null) {
+			return Utils.clone(serverErrorResponse);
 		} else if (! PermissionsCheck.check()) {
-			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, "License has expired" ).toString()).build();
+			return Response.status(500).entity( new ErrorResponse(500, "License has expired" )).build();
 		} else {
-			return Response.status(200).entity("OK").build();
+			return Response.status(200).entity(new ServiceRunning()).build();
 		}
-
 	}
 }

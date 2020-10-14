@@ -3,13 +3,12 @@ package com.arosbio.api;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-//import com.google.common.net.MediaType;
-//import com.google.common.net.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
@@ -27,38 +26,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-@Path("")
+@Path("/v2")
 public class PredictApi  {
-//	private final PredictApiService delegate;
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(PredictApi.class);
 	
-	static {
-		// Causes init of the Predict-class and loads the model/license
-		new Predict();
-	}
-
-//	private Predict service = new Predict();
-//	public PredictApi(@Context ServletConfig servletContext) {
-//		PredictApiService delegate = null;
-//
-//		if (servletContext != null) {
-//			String implClass = servletContext.getInitParameter("PredictApi.implementation");
-//			if (implClass != null && !"".equals(implClass.trim())) {
-//				try {
-//					delegate = (PredictApiService) Class.forName(implClass).newInstance();
-//				} catch (Exception e) {
-//					throw new RuntimeException(e);
-//				}
-//			} 
-//		}
-//
-//		if (delegate == null) {
-//			delegate = PredictApiServiceFactory.getPredictApi();
-//		}
-//
-//		this.delegate = delegate;
-//	}
-
 	@Path("/predict")
 	@GET
 	@Consumes({ MediaType.MULTIPART_FORM_DATA })
@@ -81,7 +52,6 @@ public class PredictApi  {
 							schema = @Schema(implementation = ErrorResponse.class)))
 			}
 			)
-	//	@ApiResponses(value = )
 	public Response predictGet(
 
 			@Parameter(description = "Compound structure notation using SMILES or MDL format", required=false, example="CCCCC=O")
@@ -92,7 +62,7 @@ public class PredictApi  {
 
 			@Context SecurityContext securityContext)
 					throws NotFoundException {
-		return Predict.doPredict(molecule, confidence); //predictGet(molecule,confidence,securityContext);
+		return Predict.doPredict(molecule, confidence);
 	}
 
 
@@ -143,11 +113,13 @@ public class PredictApi  {
 
 	@Path("/health")
 	@GET
-	@Operation(summary="Get the status of the prediction service")
-//	@ApiResponses(value = {
-//			@ApiResponse(code = 200, message = "OK"),
-//			@ApiResponse(code = 503, message = "Service down", response = ErrorResponse.class),
-//	})
+	@HEAD
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Operation(summary="Get the status of the prediction service", 
+	responses = {
+			@ApiResponse(responseCode="200", description="Service is running"),
+			@ApiResponse(responseCode="500", description="Service down")
+	})
 	public Response health() {
 		return Predict.checkHealth();
 	}

@@ -5,48 +5,13 @@
                           http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
       version="3.0">
 
-	<!-- 
-   <servlet-mapping>
-      <servlet-name>io.swagger.api.RestApplication</servlet-name>
-      <url-pattern>/*</url-pattern>
-   </servlet-mapping>
-   -->
+	<listener>
+ 		<description>Load license and model</description>
+ 		<listener-class>com.arosbio.impl.StartupPredictListener</listener-class>
+	</listener>
+
 	<servlet>
    		<servlet-name>com.arosbio.api.RESTApplication</servlet-name>
 	</servlet>
-	
-	<!--
-	<servlet>
-	    <servlet-name>Open_API</servlet-name>
-	    <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-    	<init-param>
-      		<param-name>jersey.config.server.provider.packages</param-name>
-      		<param-value>
-        		io.swagger.jaxrs.listing,
-        		
-        		io.swagger.sample.resource
-      		</param-value>
-    	</init-param>
-    	<init-param>
-      		<param-name>jersey.config.server.wadl.disableWadl</param-name>
-      		<param-value>true</param-value>
-    	</init-param>
-    	<load-on-startup>1</load-on-startup>
-  	</servlet>
-  	-->
-   <!--
-   <servlet>
-    <servlet-name>Jersey Web Application</servlet-name>
-    <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-    <init-param>
-        <param-name>jersey.config.server.provider.packages</param-name>
-        <param-value>
-            io.swagger.api,
-            io.swagger.v3.jaxrs2.integration.resources
-        </param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
-</servlet>
--->
 
 </web-app>

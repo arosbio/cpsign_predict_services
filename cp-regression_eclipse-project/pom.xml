@@ -233,9 +233,9 @@
 			<version>${jersey2-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-moxy</artifactId>
-			<version>${jersey2-version}</version>
+  			<groupId>org.glassfish.jersey.media</groupId>
+  			<artifactId>jersey-media-json-jackson</artifactId>
+  			<version>${jersey2-version}</version>
 		</dependency>
 
 		<dependency>
