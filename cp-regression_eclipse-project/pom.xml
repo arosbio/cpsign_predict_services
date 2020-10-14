@@ -56,7 +56,7 @@
 
 			<plugin>
 				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>2.6</version>
+				<version>2.22.2</version>
 				<executions>
 					<execution>
 						<goals>
@@ -74,7 +74,7 @@
 					<webApp>
 						<contextPath>/</contextPath>
 					</webApp>
-					<webAppSourceDirectory>target/${project.artifactId}-${project.version}</webAppSourceDirectory>
+					<webAppSourceDirectory>target/${project.artifactId}-${project.version}.war</webAppSourceDirectory>
 					<stopPort>8079</stopPort>
 					<stopKey>stopit</stopKey>
 					<stopWait>10</stopWait>
@@ -186,12 +186,35 @@
 
 
 	<dependencies>
+		<!-- Test deps -->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<version>4.3.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.stefanbirkner</groupId>
+			<artifactId>system-rules</artifactId>
+			<version>1.19.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- CPSIGN -->
+
 		<dependency>
 			<groupId>com.arosbio</groupId>
 			<artifactId>cpsign</artifactId>
 			<version>${cpsign.version}</version>
 		</dependency>
 
+		<!-- OpenAPI -->
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
 			<artifactId>swagger-jaxrs2</artifactId>
@@ -208,13 +231,8 @@
 			<version>${swagger-core-version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit-version}</version>
-			<scope>test</scope>
-		</dependency>
 
+		<!-- Correct servlet API from the Jetty Sever we target -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
@@ -233,9 +251,9 @@
 			<version>${jersey2-version}</version>
 		</dependency>
 		<dependency>
-  			<groupId>org.glassfish.jersey.media</groupId>
-  			<artifactId>jersey-media-json-jackson</artifactId>
-  			<version>${jersey2-version}</version>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+			<version>${jersey2-version}</version>
 		</dependency>
 
 		<dependency>

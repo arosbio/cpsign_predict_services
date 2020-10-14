@@ -1,4 +1,4 @@
-package io.swagger.api.model;
+package com.arosbio.api.model;
 
 import org.junit.Test;
 

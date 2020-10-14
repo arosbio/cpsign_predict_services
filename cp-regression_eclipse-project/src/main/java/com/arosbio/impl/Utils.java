@@ -6,6 +6,8 @@ import java.nio.charset.StandardCharsets;
 
 import javax.ws.rs.core.Response;
 
+import com.arosbio.api.model.ErrorResponse;
+
 public class Utils {
 	
 	private static final int MAX_NUM_STACK_TO_LOGG = 10;
@@ -47,8 +49,8 @@ public class Utils {
 		return Math.round(val*1000.0)/1000.0;
 	}
 
-	public static Response clone(Response resp) {
-		return Response.status(resp.getStatus()).entity(resp.getEntity()).build();
+	public static Response getResponse(ErrorResponse error) {
+		return Response.status(error.getCode()).entity(error).build();
 		
 	}
 }

@@ -4,13 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class BadRequestError extends ErrorResponse {
 
 	@JsonProperty("fields")
 	private List<String> fields = new ArrayList<String>();
-
+	
+	public BadRequestError(Status status, String message, List<String> fields) {
+		super(status, message);
+		this.fields = fields;
+	}
+	
 	public BadRequestError(int code, String message, List<String> fields) {
 		super(code, message);
 		this.fields = fields;

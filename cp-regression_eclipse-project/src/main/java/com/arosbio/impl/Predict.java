@@ -1,5 +1,9 @@
 package com.arosbio.impl;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -21,6 +25,7 @@ import org.slf4j.Logger;
 
 import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
+import com.arosbio.api.model.RegressionResult;
 import com.arosbio.api.model.ServiceRunning;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
 import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
@@ -45,7 +50,7 @@ public class Predict {
 	public static final String LICENSE_FILE_ENV_VARIABLE = "LICENSE_FILE";
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
-	private static Response serverErrorResponse = null;
+	private static ErrorResponse serverErrorResponse = null;
 	private static SignaturesCPRegression model;
 	private static CPSignFactory factory;
 
@@ -80,9 +85,7 @@ public class Predict {
 			logger.info("Initiated the CPSignFactory");
 		} catch (RuntimeException | IOException re){
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
-			serverErrorResponse = Response.status(500).entity(
-					new ErrorResponse(500, "No license found at server init - service needs to be re-deployed with a valid license")
-					).build();
+			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No license found at server init - service needs to be re-deployed with a valid license");
 		}
 		
 		// load the model - only if no error previously encountered
@@ -98,9 +101,7 @@ public class Predict {
 				}
 			} catch (Exception e) {
 				logger.error("No model could be loaded", e);
-				serverErrorResponse = Response.status(500).entity(
-						new ErrorResponse(500, "No model found at server init - service needs to be re-depolyed with a valid model config")
-						).build();
+				serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No model found at server init - service needs to be re-depolyed with a valid model config");
 			}
 
 			if (serverErrorResponse == null) {
@@ -115,7 +116,7 @@ public class Predict {
 					logger.info("Loaded model");
 				} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
 					logger.error("Could not load the model", e);
-					serverErrorResponse = Response.status(500).entity( new ErrorResponse(500, "Model could not be loaded at server init ("+e.getMessage()+") - service needs to be re-deployed") ).build();
+					serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Model could not be loaded at server init ("+e.getMessage()+") - service needs to be re-deployed");
 				}
 			}
 		}
@@ -125,31 +126,25 @@ public class Predict {
 		logger.debug("got a prediction task, conf=" + confidence);
 
 		if (serverErrorResponse != null)
-			return Utils.clone(serverErrorResponse);
+			return Utils.getResponse(serverErrorResponse);
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
-			return Response.status(400).
-					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")) ).
-					build();
+			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "missing argument", Arrays.asList("molecule")) );
 		}
 
 		String decodedMolData = null;
 		try {
 			decodedMolData = Utils.decodeURL(molecule);
 		} catch (MalformedURLException e) {
-			return Response.status(400).
-					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule"))).
-					build();
+			return Utils.getResponse( new BadRequestError(BAD_REQUEST, "Could not decode molecule text", Arrays.asList("molecule")));
 		} 
 
 		IAtomContainer molToPredict = null;
 		try {
 			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
 		} catch (IllegalArgumentException e) {
-			return Response.status(400).
-					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")) ).
-					build();
+			return Utils.getResponse(new BadRequestError(BAD_REQUEST, e.getMessage(), Arrays.asList("molecule")) );
 		}
 
 		// Generate SMILES to have in the response
@@ -159,9 +154,7 @@ public class Predict {
 			logger.info("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
-			return Response.status(500).entity( 
-					new com.arosbio.api.model.ErrorResponse(500, "Could not generate SMILES for molecule") )
-					.build();
+			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Could not generate SMILES for molecule") );
 		}
 
 		// Make prediction
@@ -169,10 +162,10 @@ public class Predict {
 		try {
 			CPRegressionPrediction res = model.predict(molToPredict, confidence);
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
-			return Response.status(200).entity( new com.arosbio.api.model.RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()) ).build();
+			return Response.ok( new RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()) ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
-			return Response.status(500).entity( new com.arosbio.api.model.ErrorResponse(500, "Server error - error during prediction") ).build();
+			return Utils.getResponse( new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error - error during prediction") );
 		} finally{
 			CDKMutexLock.releaseLock();
 		}
@@ -181,27 +174,23 @@ public class Predict {
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, Double confidence, boolean addTitle) {
 		logger.debug("Got predictImage request: imageWidth="+imageWidth + ", imageHeight="+imageHeight+", conf="+confidence);
 		if (serverErrorResponse != null)
-			return Utils.clone(serverErrorResponse);
+			return Utils.getResponse(serverErrorResponse);
 
 		if (confidence != null && (confidence < 0 || confidence > 1)){
 			logger.warn("invalid argument confidence=" + confidence);
-			return Response.status(400).entity(
-					new BadRequestError(400, "invalid argument", Arrays.asList("confidence"))
-					).build();
+			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "invalid argument", Arrays.asList("confidence")));
 		}
 
 		if (imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
 			logger.warn("Failing execution due to too small image required");
-			return Response.status(400).entity(
-					new BadRequestError(400,"image height and width must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight"))
-					).build();
+			return Utils.getResponse(
+					new BadRequestError(400,"image height and width must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")));
 		}
 
 		if (imageWidth > MAX_IMAGE_SIZE || imageHeight> MAX_IMAGE_SIZE){
 			logger.warn("Failing execution due to too large image requested");
-			return Response.status(400).entity(
-					new BadRequestError(400,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight"))
-					).build();
+			return Utils.getResponse(
+					new BadRequestError(BAD_REQUEST,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")));
 		}
 
 		// Return empty img if no smiles sent
@@ -220,33 +209,27 @@ public class Predict {
 				return Response.ok( new ByteArrayInputStream(imageData) ).build();
 			} catch (Exception e) {
 				logger.info("Failed returning empty image for empty smiles");
-				return Response.status(500).entity(new ErrorResponse(500, "Server error")).build();
+				return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error"));
 			}
 		}
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
-			return Response.status(400).
-					entity( new BadRequestError(400, "missing argument", Arrays.asList("molecule")) ).
-					build();
+			return Utils.getResponse( new BadRequestError(BAD_REQUEST, "missing argument", Arrays.asList("molecule")) );
 		}
 
 		String decodedMolData = null;
 		try {
 			decodedMolData = Utils.decodeURL(molecule);
 		} catch (MalformedURLException e) {
-			return Response.status(400).
-					entity( new BadRequestError(400, "Could not decode molecule text", Arrays.asList("molecule"))).
-					build();
+			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "Could not decode molecule text", Arrays.asList("molecule")));
 		} 
 
 		IAtomContainer molToPredict = null;
 		try {
 			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
 		} catch (IllegalArgumentException e) {
-			return Response.status(400).
-					entity(new BadRequestError(400, e.getMessage(), Arrays.asList("molecule")) ).
-					build();
+			return Utils.getResponse(new BadRequestError(BAD_REQUEST, e.getMessage(), Arrays.asList("molecule")));
 		}
 
 		// Generate SMILES to have in the response
@@ -256,9 +239,8 @@ public class Predict {
 			logger.info("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
-			return Response.status(500).entity( 
-					new ErrorResponse(500, "Could not generate SMILES for molecule: " + e.getMessage()) )
-					.build();
+			return Utils.getResponse( 
+					new ErrorResponse(INTERNAL_SERVER_ERROR, "Could not generate SMILES for molecule: " + e.getMessage()));
 		}
 
 		// Make prediction + generate image
@@ -294,20 +276,18 @@ public class Predict {
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
-			return Response.status(500).entity( 
-					new ErrorResponse(500, "Error during prediction: " + e.getMessage()) 
-					).build();
+			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during prediction: " + e.getMessage()) );
 		} finally {
 			CDKMutexLock.releaseLock();
 		}
 	}
 	public static Response checkHealth() {
 		if( serverErrorResponse != null) {
-			return Utils.clone(serverErrorResponse);
+			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, serverErrorResponse.getMsg()));
 		} else if (! PermissionsCheck.check()) {
-			return Response.status(500).entity( new ErrorResponse(500, "License has expired" )).build();
+			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, "License has expired" ));
 		} else {
-			return Response.status(200).entity(new ServiceRunning()).build();
+			return Response.ok(new ServiceRunning()).build();
 		}
 	}
 }

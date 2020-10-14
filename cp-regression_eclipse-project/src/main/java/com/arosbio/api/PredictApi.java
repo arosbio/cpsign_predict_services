@@ -3,7 +3,6 @@ package com.arosbio.api;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -28,7 +27,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Path("/v2")
 public class PredictApi  {
-	private static Logger logger = org.slf4j.LoggerFactory.getLogger(PredictApi.class);
+	private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PredictApi.class);
 	
 	@Path("/predict")
 	@GET
@@ -69,7 +68,7 @@ public class PredictApi  {
 	@Path("/predictImage")
 	@GET
 	@Consumes({ MediaType.MULTIPART_FORM_DATA })
-	@Produces({ "image/png" }) //, MediaType.APPLICATION_JSON
+	@Produces({ "image/png" }) 
 	@Operation(
 			summary = "Make a prediction image for the given molecule",
 			tags={"Predict"},
@@ -84,7 +83,8 @@ public class PredictApi  {
 							schema = @Schema(implementation = ErrorResponse.class))),
 
 					@ApiResponse(responseCode = "503", description = "Service not available", content = @Content(
-							schema = @Schema(implementation = ErrorResponse.class))) }
+							schema = @Schema(implementation = ErrorResponse.class))) 
+					}
 			)
 	public Response predictImageGet( 
 
@@ -113,12 +113,13 @@ public class PredictApi  {
 
 	@Path("/health")
 	@GET
-	@HEAD
+//	@HEAD
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Operation(summary="Get the status of the prediction service", 
 	responses = {
 			@ApiResponse(responseCode="200", description="Service is running"),
-			@ApiResponse(responseCode="500", description="Service down")
+			@ApiResponse(responseCode="503", description="Service down",content = @Content(
+					schema = @Schema(implementation = ErrorResponse.class))),
 	})
 	public Response health() {
 		return Predict.checkHealth();
