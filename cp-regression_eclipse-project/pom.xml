@@ -1,28 +1,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.arosbio</groupId>
+	
+	<parent>
+		<groupId>com.arosbio</groupId>
+		<artifactId>services-parent</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../services_parent/pom.xml</relativePath>
+	</parent>
+	
 	<artifactId>cpsign.predict.rest.regression</artifactId>
 	<packaging>war</packaging>
 	<name>CPSign.Predict.Regression</name>
 	<version>1.0.3</version>
 
-	<properties>
-		<cpsign.version>1.5.0-beta2</cpsign.version>
-		<java.version>1.8</java.version>
-		<maven.compiler.source>${java.version}</maven.compiler.source>
-		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<swagger-core-version>2.1.5</swagger-core-version>
-		<jetty-version>9.4.32.v20200930</jetty-version>
-		<jersey2-version>2.32</jersey2-version>
-		<jackson-version>2.10.3</jackson-version>
-		<junit-version>4.13</junit-version>
-		<logback-version>1.1.7</logback-version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<servlet-api-version>3.1.0</servlet-api-version>
-	</properties>
 
+<!-- 
 	<licenses>
 		<license>
 			<name>Unlicense</name>
@@ -30,6 +25,7 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+	-->
 
 	<profiles>
 		<profile>
@@ -185,91 +181,13 @@
 	</build>
 
 
-	<dependencies>
-		<!-- Test deps -->
-		<dependency>
-			<groupId>io.rest-assured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<version>4.3.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit-version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.stefanbirkner</groupId>
-			<artifactId>system-rules</artifactId>
-			<version>1.19.0</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- CPSIGN -->
-
-		<dependency>
-			<groupId>com.arosbio</groupId>
-			<artifactId>cpsign</artifactId>
-			<version>${cpsign.version}</version>
-		</dependency>
-
-		<!-- OpenAPI -->
-		<dependency>
-			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-jaxrs2</artifactId>
-			<version>${swagger-core-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
-			<version>${swagger-core-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-annotations</artifactId>
-			<version>${swagger-core-version}</version>
-		</dependency>
-
-
-		<!-- Correct servlet API from the Jetty Sever we target -->
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>${servlet-api-version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.glassfish.jersey.containers</groupId>
-			<artifactId>jersey-container-servlet</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-multipart</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-json-jackson</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.glassfish.jersey.inject</groupId>
-			<artifactId>jersey-hk2</artifactId>
-			<version>${jersey2-version}</version>
-		</dependency>
-
-	</dependencies>
-
-
 	<repositories>
+	<!-- 
 		<repository>
 			<id>cpsign.local</id>
-			<url>file:${basedir}/repo</url>
+			<url>file:${basedir}/../local_mvn_repo</url>
 		</repository>
+		 -->
 		<repository>
 			<id>sonatype-snapshots</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -277,10 +195,12 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		<!-- 
 		<repository>
 			<id>repo2_maven_org</id>
 			<url>http://repo2.maven.org/maven2</url>
 		</repository>
+		 -->
 	</repositories>
 
 </project>
