@@ -60,7 +60,6 @@ public class Predict {
 	public static final int MIN_IMAGE_SIZE = 100;
 	public static final int MAX_IMAGE_SIZE = 5000;
 
-//	private static String errorMessage = null;
 
 	static {
 		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null?System.getenv(LICENSE_FILE_ENV_VARIABLE):DEFAULT_LICENSE_PATH;
@@ -231,11 +230,6 @@ public class Predict {
 			}
 		}
 
-//		if (molecule==null || molecule.isEmpty()){
-//			logger.debug("Missing arguments 'molecule'");
-//			return Utils.getResponse( new BadRequestError(BAD_REQUEST, "missing argument", Arrays.asList("molecule")) );
-//		}
-
 		String decodedMolData = null;
 		try {
 			decodedMolData = Utils.decodeURL(molecule);
@@ -257,11 +251,10 @@ public class Predict {
 			logger.info("prediction-image-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
-			return Utils.getResponse( 
-					new ErrorResponse(INTERNAL_SERVER_ERROR, "Could not generate SMILES for molecule: " + e.getMessage()));
+			smiles = "<no SMILES available>"; 
 		}
 
-		// Make prediction + generate image
+		// Make prediction 
 		SignificantSignature signSign = null;
 		CPRegressionPrediction pred = null; 
 		CDKMutexLock.requireLock();
@@ -313,9 +306,6 @@ public class Predict {
 			logger.warn("Failed creating depiction for SMILES=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during image generation: " + e.getMessage()) );
 		} 
-//		finally {
-//			CDKMutexLock.releaseLock();
-//		}
 	}
 	
 	public static Response getModelInfo() {
@@ -323,7 +313,6 @@ public class Predict {
 			return Utils.getResponse(serverErrorResponse);
 		}
 		
-		// 
 		return Response.ok(new ModelInfo(model.getModelInfo())).build();
 	}
 	

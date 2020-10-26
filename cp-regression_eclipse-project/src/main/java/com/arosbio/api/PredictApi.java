@@ -17,7 +17,6 @@ import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
 import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.RegressionResult;
-import com.arosbio.api.utils.NotFoundException;
 import com.arosbio.impl.Predict;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -81,8 +80,7 @@ public class PredictApi  {
 			@QueryParam("confidence") 
 			Double confidence,
 
-			@Context SecurityContext securityContext)
-					throws NotFoundException {
+			@Context SecurityContext securityContext) {
 		try {
 			return Predict.doPredict(molecule, confidence);
 		} catch (Exception e) {
