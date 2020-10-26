@@ -28,9 +28,10 @@
         if ( smiles != jsmeApplet.smiles() ) {
             return;
         }
-        var imageurl = window.location.href.replace("/draw/","/v1/predictImage?smiles=" + jsmeApplet.smiles())
+        var imageurl = window.location.href.replace("/draw/","/api/v2/predictImage?molecule=" + jsmeApplet.smiles())
                      + "&imageWidth="  + Math.floor(window.innerWidth*0.9) 
                      + "&imageHeight=" + Math.floor(window.innerHeight*0.30-45-75)
+                     + "&addTitle=true"
                      + "&addPvals=true"
         var tester = new Image();
         tester.addEventListener('error', imageNotFound)
