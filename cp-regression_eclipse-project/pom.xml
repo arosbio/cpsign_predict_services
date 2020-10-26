@@ -16,17 +16,6 @@
 	<name>CPSign.Predict.Regression</name>
 	<version>1.0.3</version>
 
-
-<!-- 
-	<licenses>
-		<license>
-			<name>Unlicense</name>
-			<url>http://unlicense.org</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	-->
-
 	<profiles>
 		<profile>
 			<id>dev</id>
@@ -182,12 +171,6 @@
 
 
 	<repositories>
-	<!-- 
-		<repository>
-			<id>cpsign.local</id>
-			<url>file:${basedir}/../local_mvn_repo</url>
-		</repository>
-		 -->
 		<repository>
 			<id>sonatype-snapshots</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -195,12 +178,6 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-		<!-- 
-		<repository>
-			<id>repo2_maven_org</id>
-			<url>http://repo2.maven.org/maven2</url>
-		</repository>
-		 -->
 	</repositories>
 
 </project>

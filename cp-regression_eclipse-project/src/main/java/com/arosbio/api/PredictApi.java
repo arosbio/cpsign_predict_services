@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 
 import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
+import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.RegressionResult;
 import com.arosbio.api.utils.NotFoundException;
 import com.arosbio.impl.Predict;
@@ -28,7 +29,25 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @Path("/v2")
 public class PredictApi  {
 	private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PredictApi.class);
-	
+
+	@Path("/modelInfo")
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Operation(summary="Get information about this model", 
+	responses = {
+			@ApiResponse(responseCode="200", description="Model info", content = @Content(
+					schema = @Schema(implementation=ModelInfo.class))),
+			@ApiResponse(responseCode = "503", description = "Service not available", content = @Content(
+					schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	public Response modelInfo() {
+		try {
+			return Predict.getModelInfo();
+		} catch (Exception e) {
+			return convertToErrorResponse(e);
+		}
+	}
+
 	@Path("/predict")
 	@GET
 	@Consumes({ MediaType.MULTIPART_FORM_DATA })
@@ -36,7 +55,7 @@ public class PredictApi  {
 	@Operation(
 			summary = "Make a prediction on a given molecule", 
 			tags={"Predict"},
-			description = "Predict a given molecule in SMILES, MDL v2000/v3000 format. In case a MDL is sent, it must be properly URL-encoded in UTF-8. You can use for instance https://www.urlencoder.org/ to encode your file.", 
+			description = "Predict a given molecule in SMILES or MDL v2000/v3000 format. In case a MDL is sent, it must be properly URL-encoded in UTF-8. You can use for instance https://www.urlencoder.org/ to encode your file.", 
 			responses = { 
 					@ApiResponse(responseCode = "200", description = "OK", content = @Content(
 							schema = @Schema(implementation = RegressionResult.class))),
@@ -53,22 +72,29 @@ public class PredictApi  {
 			)
 	public Response predictGet(
 
-			@Parameter(description = "Compound structure notation using SMILES or MDL format", required=false, example="CCCCC=O")
-			@QueryParam("molecule") String molecule,
+			@Parameter(description = "Compound structure notation using SMILES or MDL format", required=true, example="CCCCC=O")
+			@QueryParam("molecule") 
+			String molecule,
 
-			@Parameter(description = "The desired confidence of the prediction") //, allowableValues="range(0,1)")
-			@DefaultValue("0.8") @QueryParam("confidence") double confidence,
+			@Parameter(description = "The desired confidence of the prediction", required=false, example="0.8", 
+			schema = @Schema(maximum="1.0", minimum="0.0"))
+			@QueryParam("confidence") 
+			Double confidence,
 
 			@Context SecurityContext securityContext)
 					throws NotFoundException {
-		return Predict.doPredict(molecule, confidence);
+		try {
+			return Predict.doPredict(molecule, confidence);
+		} catch (Exception e) {
+			return convertToErrorResponse(e);
+		}
 	}
 
 
 	@Path("/predictImage")
 	@GET
 	@Consumes({ MediaType.MULTIPART_FORM_DATA })
-	@Produces({ "image/png" }) 
+	@Produces({ "image/png", MediaType.APPLICATION_JSON }) 
 	@Operation(
 			summary = "Make a prediction image for the given molecule",
 			tags={"Predict"},
@@ -84,7 +110,7 @@ public class PredictApi  {
 
 					@ApiResponse(responseCode = "503", description = "Service not available", content = @Content(
 							schema = @Schema(implementation = ErrorResponse.class))) 
-					}
+			}
 			)
 	public Response predictImageGet( 
 
@@ -93,27 +119,36 @@ public class PredictApi  {
 			example="CCCCC=O")
 			@QueryParam("molecule") String molecule,
 
-			@Parameter(description = "Image width (min 50 pixels, max 5000 pixels)") // TODO, allowableValues="range[50,5000]")
-			@DefaultValue("600") @QueryParam("imageWidth") int imageWidth,
-
-			@Parameter(description = "Image height (min 50 pixels, max 5000 pixels)") // TODO, allowableValues="range[50,5000]")
-			@DefaultValue("600") @QueryParam("imageHeight") int imageHeight,
-
-			@Parameter(description = "Confidence of prediction (writes prediction interval in figure)", required=false)
+			@Parameter(description = "The desired confidence of the prediction", required=false, example="0.8", 
+				schema = @Schema(maximum="1.0", minimum="0.0"))
 			@QueryParam("confidence") Double confidence,
 
+			@Parameter(description = "Image width in pixels",
+				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE))
+			@DefaultValue("600") @QueryParam("imageWidth") 
+			int imageWidth,
+
+			@Parameter(description = "Image height in pixels",
+				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE)) 
+			@DefaultValue("600") @QueryParam("imageHeight") 
+			int imageHeight,
+
 			@Parameter(description = "Add title to the image (using the model name)")
-			@DefaultValue("false") @QueryParam("addTitle") boolean addTitle,
+			@DefaultValue("false") 
+			@QueryParam("addTitle") 
+			boolean addTitle,
 
 			@Context SecurityContext securityContext ) {
 		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
-
-		return Predict.doPredictImage(molecule, imageWidth, imageHeight, confidence, addTitle); //delegate.predictImageGet(molecule, imageWidth, imageHeight, confidence, addTitle, securityContext);
+		try {
+			return Predict.doPredictImage(molecule, imageWidth, imageHeight, confidence, addTitle); 
+		} catch (Exception e) {
+			return convertToErrorResponse(e);
+		}
 	}
 
 	@Path("/health")
 	@GET
-//	@HEAD
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Operation(summary="Get the status of the prediction service", 
 	responses = {
@@ -122,6 +157,15 @@ public class PredictApi  {
 					schema = @Schema(implementation = ErrorResponse.class))),
 	})
 	public Response health() {
-		return Predict.checkHealth();
+		try {
+			return Predict.checkHealth();
+		} catch (Exception e) {
+			return convertToErrorResponse(e);
+		}
+	}
+
+	private Response convertToErrorResponse(Exception e) {
+		int code = javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
+		return Response.status(code).entity(new ErrorResponse(code, "Service failure: " + e.getMessage() + ", please contact the service provider if the error was not due to user-error")).build();
 	}
 }

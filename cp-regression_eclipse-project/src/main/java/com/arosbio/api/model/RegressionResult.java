@@ -6,43 +6,49 @@ import javax.validation.constraints.NotNull;
 
 import com.arosbio.impl.Utils;
 import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
+import com.arosbio.modeling.ml.cp.CPRegressionPrediction.PredictedInterval;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class RegressionResult {
 	
 	@JsonProperty("smiles")
 	@NotNull
-	private final String smiles;
+	private String smiles;
 	
 	@JsonProperty("lower")
-	private final Double lower;
+	private Double lower = null;
 
 	@JsonProperty("upper")
-	private final Double upper;
+	private Double upper = null;
 
 	@JsonProperty("predictionMidpoint")
-	private final Double predictionMidpoint;
+	@NotNull
+	private Double predictionMidpoint = null;
 
 	@JsonProperty("confidence")
-	private final Double confidence;
+	private Double confidence;
 	
 	@JsonProperty("modelName")
 	@NotNull
-	private final String modelName;
+	private String modelName = null;;
 
-	public RegressionResult(String smiles, double lower, double upper, double mp, double confidence, String modelName) {
+	public RegressionResult(String smiles, CPRegressionPrediction res, Double confidence, String modelName) {
 		this.smiles = smiles;
-		this.lower = lower;
-		this.upper = upper;
-		this.predictionMidpoint = mp;
 		this.confidence = confidence;
 		this.modelName = modelName;
-	}
-	
-	public RegressionResult(String smiles, CPRegressionPrediction res, double confidence, String modelName){
-		this(smiles, res.getInterval(confidence).getInterval().lowerEndpoint(),res.getInterval(confidence).getInterval().upperEndpoint(),res.getY_hat(),confidence, modelName);
+		if (res!=null) {
+			this.predictionMidpoint = res.getY_hat();
+			// Upper / lower only accessible if confidence was given
+			if (confidence != null) {
+				PredictedInterval interval = res.getInterval(confidence);
+				this.upper = interval.getInterval().upperEndpoint();
+				this.lower = interval.getInterval().lowerEndpoint();
+			}
+		}
 	}
 
 	@Override

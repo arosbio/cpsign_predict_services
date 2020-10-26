@@ -18,7 +18,11 @@ public class CDKMutexLock {
 	}
 	
 	public static void releaseLock() {
-		lock.unlock();
+		try {
+			lock.unlock();
+		} catch (IllegalMonitorStateException e) {
+			// Didn't hold the lock, thus we don't need to handle this
+		}
 	}
 
 }

@@ -28,7 +28,7 @@ public class ErrorResponse {
 	public int getCode() {
 		return code;
 	}
-	public String getMsg() {
+	public String getMessage() {
 		return message;
 	}
 

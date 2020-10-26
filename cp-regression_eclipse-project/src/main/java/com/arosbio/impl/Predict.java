@@ -14,17 +14,20 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.security.InvalidKeyException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
-import org.javatuples.Pair;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
 import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
+import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.RegressionResult;
 import com.arosbio.api.model.ServiceRunning;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
@@ -54,8 +57,8 @@ public class Predict {
 	private static SignaturesCPRegression model;
 	private static CPSignFactory factory;
 
-	private static final int MIN_IMAGE_SIZE = 50;
-	private static final int MAX_IMAGE_SIZE = 5000;
+	public static final int MIN_IMAGE_SIZE = 100;
+	public static final int MAX_IMAGE_SIZE = 5000;
 
 //	private static String errorMessage = null;
 
@@ -122,7 +125,7 @@ public class Predict {
 		}
 	}
 
-	public static Response doPredict(String molecule, double confidence) {
+	public static Response doPredict(String molecule, Double confidence) {
 		logger.debug("got a prediction task, conf=" + confidence);
 
 		if (serverErrorResponse != null)
@@ -160,7 +163,12 @@ public class Predict {
 		// Make prediction
 		CDKMutexLock.requireLock();
 		try {
-			CPRegressionPrediction res = model.predict(molToPredict, confidence);
+			CPRegressionPrediction res = null;
+			if (confidence != null) {
+				res = model.predict(molToPredict, confidence);
+			} else {
+				res = model.predict(molToPredict, new ArrayList<>());
+			}
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
 			return Response.ok( new RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()) ).build();
 		} catch (Exception | Error e) {
@@ -169,6 +177,10 @@ public class Predict {
 		} finally{
 			CDKMutexLock.releaseLock();
 		}
+	}
+	
+	private static boolean isValidSize(int size) {
+		return ! (size < MIN_IMAGE_SIZE || size > MAX_IMAGE_SIZE);
 	}
 
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, Double confidence, boolean addTitle) {
@@ -180,17 +192,23 @@ public class Predict {
 			logger.warn("invalid argument confidence=" + confidence);
 			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "invalid argument", Arrays.asList("confidence")));
 		}
-
-		if (imageWidth < MIN_IMAGE_SIZE || imageHeight < MIN_IMAGE_SIZE){
-			logger.warn("Failing execution due to too small image required");
+		
+		if (! isValidSize(imageWidth) && ! isValidSize(imageHeight)) {
+			logger.warn("Failing execution due to invalid image size");
 			return Utils.getResponse(
-					new BadRequestError(400,"image height and width must be at least "+MIN_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")));
+					new BadRequestError(400,"image width and height must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageWidth", "imageHeight")));
 		}
 
-		if (imageWidth > MAX_IMAGE_SIZE || imageHeight> MAX_IMAGE_SIZE){
-			logger.warn("Failing execution due to too large image requested");
+		if (! isValidSize(imageWidth)){
+			logger.warn("Failing execution due to invalid image size");
 			return Utils.getResponse(
-					new BadRequestError(BAD_REQUEST,"image height and width can maximum be "+MAX_IMAGE_SIZE+" pixels", Arrays.asList("imageWidth", "imageHeight")));
+					new BadRequestError(400,"image width must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageWidth")));
+		}
+
+		if (! isValidSize(imageHeight)){
+			logger.warn("Failing execution due to invalid image size");
+			return Utils.getResponse(
+					new BadRequestError(BAD_REQUEST,"image height must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageHeight")));
 		}
 
 		// Return empty img if no smiles sent
@@ -213,10 +231,10 @@ public class Predict {
 			}
 		}
 
-		if (molecule==null || molecule.isEmpty()){
-			logger.debug("Missing arguments 'molecule'");
-			return Utils.getResponse( new BadRequestError(BAD_REQUEST, "missing argument", Arrays.asList("molecule")) );
-		}
+//		if (molecule==null || molecule.isEmpty()){
+//			logger.debug("Missing arguments 'molecule'");
+//			return Utils.getResponse( new BadRequestError(BAD_REQUEST, "missing argument", Arrays.asList("molecule")) );
+//		}
 
 		String decodedMolData = null;
 		try {
@@ -236,7 +254,7 @@ public class Predict {
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
-			logger.info("prediction-task for smiles=" + smiles);
+			logger.info("prediction-image-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Utils.getResponse( 
@@ -245,11 +263,23 @@ public class Predict {
 
 		// Make prediction + generate image
 		SignificantSignature signSign = null;
+		CPRegressionPrediction pred = null; 
 		CDKMutexLock.requireLock();
 		try {
 			signSign = model.predictSignificantSignature(molToPredict);
-
-			// Create the depiction
+			if (confidence!=null && imageWidth>80) {
+				pred = model.predict(molToPredict, confidence);
+			}
+		} catch (Exception | Error e) {
+			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
+			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during prediction: " + e.getMessage()) );
+		} finally {
+			CDKMutexLock.releaseLock();
+		}
+			
+		// Create the depiction
+		try {
+			
 			MoleculeGradientDepictor depictor = new MoleculeGradientDepictor(GradientFactory.getDefaultBloomGradient());
 			depictor.setImageHeight(imageHeight);
 			depictor.setImageWidth(imageWidth);
@@ -260,14 +290,19 @@ public class Predict {
 				builder.addFieldOverImg(new TitleField(model.getModelInfo().getModelName()));
 			}
 			// add confidence interval only if given confidence and image size is big enough
-			if (confidence != null && imageWidth>80){
-				CPRegressionPrediction pred = model.predict(molToPredict, confidence);
-				Range<Double> interval = pred.getInterval(confidence).getInterval();
-				builder.addFieldUnderImg(new PredictionIntervalField(Pair.with(interval.lowerEndpoint(), interval.upperEndpoint()), confidence));
+			if (pred != null){
+				try {
+					Range<Double> predInterval = pred.getInterval(confidence).getInterval();
+					if (predInterval != null)
+						builder.addFieldUnderImg(new PredictionIntervalField(predInterval, confidence));
+				} catch (Exception e) {
+					logger.error("failed adding prediction-interval to image. the prediction = " + pred, e);
+				}
 			}
 			builder.addFieldUnderImg(new ColorGradientField(depictor.getColorGradient()));
-
-			BufferedImage image = builder.build(molToPredict, signSign.getMoleculeGradient()).getImage();
+			
+			Map<Integer,Double> grad = signSign.getMoleculeGradient();
+			BufferedImage image = builder.build(molToPredict, (grad!=null? grad : new HashMap<>())).getImage();
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", baos);
@@ -275,15 +310,26 @@ public class Predict {
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (Exception | Error e) {
-			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
-			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during prediction: " + e.getMessage()) );
-		} finally {
-			CDKMutexLock.releaseLock();
-		}
+			logger.warn("Failed creating depiction for SMILES=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
+			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during image generation: " + e.getMessage()) );
+		} 
+//		finally {
+//			CDKMutexLock.releaseLock();
+//		}
 	}
+	
+	public static Response getModelInfo() {
+		if (serverErrorResponse != null) {
+			return Utils.getResponse(serverErrorResponse);
+		}
+		
+		// 
+		return Response.ok(new ModelInfo(model.getModelInfo())).build();
+	}
+	
 	public static Response checkHealth() {
 		if( serverErrorResponse != null) {
-			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, serverErrorResponse.getMsg()));
+			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, serverErrorResponse.getMessage()));
 		} else if (! PermissionsCheck.check()) {
 			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, "License has expired" ));
 		} else {
