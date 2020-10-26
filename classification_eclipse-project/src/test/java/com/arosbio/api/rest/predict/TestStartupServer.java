@@ -6,6 +6,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
+import com.arosbio.impl.Predict;
+
 public class TestStartupServer {
 
 	@Rule

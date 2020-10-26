@@ -1,8 +1,12 @@
-package com.arosbio.api.rest.predict;
+package com.arosbio.impl;
 
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+
+import javax.ws.rs.core.Response;
+
+import com.arosbio.api.model.ErrorResponse;
 
 public class Utils {
 	
@@ -40,5 +44,13 @@ public class Utils {
 			throw new MalformedURLException("Could not decode text");
 		}
 	}
+	
+	public static double roundTo3digits(double val){
+		return Math.round(val*1000.0)/1000.0;
+	}
 
+	public static Response getResponse(ErrorResponse error) {
+		return Response.status(error.getCode()).entity(error).build();
+		
+	}
 }

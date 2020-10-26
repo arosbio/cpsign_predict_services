@@ -1,9 +1,7 @@
-package com.arosbio.api.rest;
+package com.arosbio.impl;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-
-import com.arosbio.api.rest.predict.Predict;
 
 public class StartupPredictListener implements ServletContextListener {
 

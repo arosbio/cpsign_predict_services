@@ -11,7 +11,7 @@
  */
 
 
-package io.swagger.model;
+package com.arosbio.api.model;
 
 import java.util.Objects;
 
@@ -19,27 +19,19 @@ import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 
-import org.json.simple.JSONObject;
-
 import com.arosbio.commons.MathUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Mapping of label to predicted p-value
  */
-@ApiModel(description = "Mapping of label to predicted p-value")
 public class PValueMapping {
 	@JsonProperty("label")
-	@ApiModelProperty(required = true, value = "Label", example="mutagen")
 	private final String label;
 
 	@JsonProperty("pValue")
-	@ApiModelProperty(required = true, value = "p-value", example="0.75")
 	@NotNull
-	@DecimalMin("0") @DecimalMax("1")
+	@DecimalMin("0.0") @DecimalMax("1.0")
 	private final Double pValue;
 
 	public PValueMapping(String label, Double pvalue) {
@@ -65,16 +57,4 @@ public class PValueMapping {
 		return Objects.hash(label, pValue);
 	}
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public String toString() {
-		
-		JSONObject jsonResponse = new JSONObject();
-
-		jsonResponse.put("label", label);
-		jsonResponse.put("pValue", pValue);
-
-		return jsonResponse.toJSONString();
-	}
-	
 }

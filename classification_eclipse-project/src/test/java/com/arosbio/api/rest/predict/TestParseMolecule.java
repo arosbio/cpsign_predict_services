@@ -10,7 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
-import com.arosbio.api.rest.predict.ChemUtils;
+import com.arosbio.impl.ChemUtils;
 
 public class TestParseMolecule {
 	

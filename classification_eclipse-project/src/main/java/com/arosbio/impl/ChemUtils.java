@@ -1,4 +1,4 @@
-package com.arosbio.api.rest.predict;
+package com.arosbio.impl;
 
 import java.io.ByteArrayInputStream;
 
@@ -41,7 +41,7 @@ public class ChemUtils {
 					try (MDLV3000Reader reader = new MDLV3000Reader(new ByteArrayInputStream(moleculeData.getBytes()));){
 						return reader.read(new AtomContainer());
 					} catch (Exception | Error e) {
-						logger.debug("Failed to read molecule as MDL v3000");
+						logger.debug("Failed to read molecule as MDL 3000");
 						throw new IllegalArgumentException("Invalid query MDL");
 					} 
 				} else {
@@ -56,7 +56,7 @@ public class ChemUtils {
 				} catch (InvalidSmilesException | IllegalArgumentException e){
 					logger.debug("Got exception when parsing smiles:\n" + Utils.getStackTrace(e));
 					throw new IllegalArgumentException("Invalid query SMILES '" + moleculeData + '\'');
-				} 
+				}  
 
 			}
 		} finally {

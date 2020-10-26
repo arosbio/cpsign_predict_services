@@ -11,35 +11,27 @@
  */
 
 
-package io.swagger.model;
+package com.arosbio.api.model;
 
 import java.util.List;
 import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
-import org.json.simple.JSONObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.swagger.annotations.ApiModelProperty;
 
 /**
  * Classification
  */
-@javax.annotation.Generated(value = "io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2017-10-06T12:54:15.929Z")
 public class ClassificationResult   {
 	@JsonProperty("smiles")
-	@ApiModelProperty(required = true, value = "SMILES string for the molecule used in the prediction", example="CCCCC=O")
 	@NotNull
 	private final String smiles;
 
 	@JsonProperty("prediction")
-	@ApiModelProperty(required=true, value = "Predicted p-values for each label")
 	private List<PValueMapping> prediction;
 	
 	@JsonProperty("modelName")
-	@ApiModelProperty(required=true, value="Name of the model used for the prediction")
 	@NotNull
 	private final String modelName;
 
@@ -68,17 +60,5 @@ public class ClassificationResult   {
 		return Objects.hash(smiles, prediction, modelName);
 	}
 
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public String toString() {
-		JSONObject jsonResponse = new JSONObject();
-
-		jsonResponse.put("smiles", smiles);
-		jsonResponse.put("prediction", prediction);
-		jsonResponse.put("modelName", modelName);
-
-		return jsonResponse.toJSONString();
-	}
 }
 
