@@ -9,29 +9,31 @@ import javax.validation.constraints.NotNull;
 import com.arosbio.commons.MathUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class PValueMapping {
+
+public class ProbabilityMapping {
 	@JsonProperty("label")
+	@NotNull
 	private final String label;
 
-	@JsonProperty("pValue")
+	@JsonProperty("probability")
 	@NotNull
-	@DecimalMin("0.0") @DecimalMax("1.0")
+	@DecimalMin("0") @DecimalMax("1")
 	private final Double pValue;
 
-	public PValueMapping(String label, Double pvalue) {
+	public ProbabilityMapping(String label, Double pvalue) {
 		this.label = label;
 		this.pValue = MathUtils.roundTo3significantFigures(pvalue);
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(java.lang.Object o) {
 		if (this == o) {
 			return true;
 		}
 		if (o == null || getClass() != o.getClass()) {
 			return false;
 		}
-		PValueMapping pvalueMapping = (PValueMapping) o;
+		ProbabilityMapping pvalueMapping = (ProbabilityMapping) o;
 		return Objects.equals(this.label, pvalueMapping.label) &&
 				Objects.equals(this.pValue, pvalueMapping.pValue);
 	}

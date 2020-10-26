@@ -27,24 +27,24 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
 import com.arosbio.api.model.BadRequestError;
-import com.arosbio.api.model.ClassificationResult;
 import com.arosbio.api.model.ErrorResponse;
 import com.arosbio.api.model.ModelInfo;
-import com.arosbio.api.model.PValueMapping;
+import com.arosbio.api.model.PredictionResult;
+import com.arosbio.api.model.ProbabilityMapping;
 import com.arosbio.api.model.ServiceRunning;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
 import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.arosbio.chem.io.out.fields.ColorGradientField;
-import com.arosbio.chem.io.out.fields.PValuesField;
+import com.arosbio.chem.io.out.fields.ProbabilityField;
 import com.arosbio.chem.io.out.fields.TitleField;
 import com.arosbio.commons.auth.PermissionsCheck;
 import com.arosbio.depict.GradientFactory;
 import com.arosbio.io.UriUtils;
 import com.arosbio.modeling.CPSignFactory;
-import com.arosbio.modeling.cheminf.SignaturesCPClassification;
+import com.arosbio.modeling.cheminf.SignaturesVAPClassification;
+import com.arosbio.modeling.cheminf.SignaturesVAPClassification.SignaturesCVAPResult;
 import com.arosbio.modeling.cheminf.SignificantSignature;
 import com.arosbio.modeling.io.ModelLoader;
-
 
 public class Predict {
 
@@ -55,7 +55,7 @@ public class Predict {
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
 	private static ErrorResponse serverErrorResponse = null;
-	private static SignaturesCPClassification model;
+	private static SignaturesVAPClassification model;
 	private static CPSignFactory factory;
 
 	public static final int MIN_IMAGE_SIZE = 100;
@@ -111,10 +111,10 @@ public class Predict {
 
 				try {
 					if ( factory.supportEncryption() ) {
-						model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
+						model = (SignaturesVAPClassification) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
 					}
 					else {
-						model = (SignaturesCPClassification) ModelLoader.loadModel(modelURI, null);
+						model = (SignaturesVAPClassification) ModelLoader.loadModel(modelURI, null);
 					}
 					logger.info("Loaded model");
 				} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
@@ -179,15 +179,17 @@ public class Predict {
 
 		CDKMutexLock.requireLock();
 		try {
-			Map<String, Double> res = model.predictMondrian(molToPredict);
 
-			logger.debug("Successfully finished predicting smiles="+smiles+", pvalues=" + res );
-			List<PValueMapping> pvalues = new ArrayList<>();
-			for (Entry<String, Double> entry : res.entrySet()) {
-				pvalues.add(new PValueMapping(entry.getKey(), entry.getValue()));
+			SignaturesCVAPResult res = model.predict(molToPredict);
+
+			logger.debug("Successfully finished predicting smiles="+smiles+", probabilites=" + res );
+
+			List<ProbabilityMapping> pvalues = new ArrayList<>();
+			for (Entry<String, Double> entry : res.getProbabilties().entrySet()) {
+				pvalues.add(new ProbabilityMapping(entry.getKey(), entry.getValue()));
 			}
 
-			return Response.ok( new ClassificationResult(pvalues, smiles, model.getModelInfo().getModelName()) ).build();
+			return Response.ok( new PredictionResult(pvalues, smiles, model.getModelInfo().getModelName())).build();
 		} catch (Exception e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
 			return Utils.getResponse( new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error - error during prediction") );
@@ -200,7 +202,7 @@ public class Predict {
 		return ! (size < MIN_IMAGE_SIZE || size > MAX_IMAGE_SIZE);
 	}
 
-	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
+	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addProbsField, boolean addTitle) {
 		logger.info("got a predict-image task, imageWidth="+imageWidth+", imageHeight="+imageHeight);
 
 		if (serverErrorResponse != null)
@@ -267,14 +269,14 @@ public class Predict {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 		}
 
-		// Make prediction 
+		// Make prediction + image
 		SignificantSignature signSign = null;
-		Map<String,Double> pVals = null;
-		CDKMutexLock.requireLock();
+		Map<String,Double> probs = null;
 		try {
+			CDKMutexLock.requireLock(); // require the lock again!
 			signSign = model.predictSignificantSignature(molToPredict);
-			if (addPvaluesField && imageWidth>80) {
-				pVals = model.predictMondrian(molToPredict);
+			if (addProbsField && imageWidth>80) {
+				probs = model.predictProbabilities(molToPredict);
 			}
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
@@ -285,7 +287,6 @@ public class Predict {
 
 		// Create the depiction
 		try {
-
 			// Create the depiction
 			MoleculeGradientDepictor depictor = new MoleculeGradientDepictor(GradientFactory.getDefaultBloomGradient());
 			depictor.setImageHeight(imageHeight);
@@ -296,10 +297,9 @@ public class Predict {
 			if (addTitle) {
 				builder.addFieldOverImg(new TitleField(model.getModelInfo().getModelName()));
 			}
-
-			// Add p-values if specified
-			if (pVals !=null){
-				builder.addFieldUnderImg(new PValuesField(pVals));
+			// Add probabilities if specified
+			if (probs !=null){
+				builder.addFieldUnderImg(new ProbabilityField(probs));
 			}
 			builder.addFieldUnderImg(new ColorGradientField(depictor.getColorGradient()));
 
@@ -313,7 +313,7 @@ public class Predict {
 		} catch (Exception | Error e) {
 			logger.warn("Failed creating depiction for SMILES=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during image generation: " + e.getMessage()) );
-		}
+		} 
 	}
 
 }

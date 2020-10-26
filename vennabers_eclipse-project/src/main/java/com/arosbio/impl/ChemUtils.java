@@ -1,4 +1,4 @@
-package com.arosbio.api.rest.predict;
+package com.arosbio.impl;
 
 import java.io.ByteArrayInputStream;
 
@@ -56,7 +56,7 @@ public class ChemUtils {
 				} catch (InvalidSmilesException | IllegalArgumentException e){
 					logger.debug("Got exception when parsing smiles:\n" + Utils.getStackTrace(e));
 					throw new IllegalArgumentException("Invalid query SMILES '" + moleculeData + '\'');
-				} 
+				}  
 
 			}
 		} finally {

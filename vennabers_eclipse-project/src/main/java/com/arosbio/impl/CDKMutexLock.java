@@ -1,4 +1,4 @@
-package com.arosbio.api.rest.predict;
+package com.arosbio.impl;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -18,7 +18,11 @@ public class CDKMutexLock {
 	}
 	
 	public static void releaseLock() {
-		lock.unlock();
+		try {
+			lock.unlock();
+		} catch (IllegalMonitorStateException e) {
+			// Didn't hold the lock, thus we don't need to handle this
+		}
 	}
 
 }
