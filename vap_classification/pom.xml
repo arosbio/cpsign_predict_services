@@ -5,13 +5,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<parent>
-		<groupId>com.arosbio</groupId>
-		<artifactId>services-parent</artifactId>
+		<groupId>com.arosbio.services</groupId>
+		<artifactId>parent</artifactId>
 		<version>1.0.0</version>
-		<relativePath>../services_parent/pom.xml</relativePath>
+		<!-- <relativePath>../services_parent/pom.xml</relativePath>  -->
 	</parent>
 	
-	<artifactId>cpsign.predict.rest.venn-abers</artifactId>
+	<artifactId>vap_classification</artifactId>
 	<packaging>war</packaging>
 	<name>CPSign.Predict.Venn-ABERS</name>
 	<version>1.0.3</version>

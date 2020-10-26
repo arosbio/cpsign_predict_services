@@ -1,13 +1,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
+
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.arosbio</groupId>
-	<artifactId>services-parent</artifactId>
+	<groupId>com.arosbio.services</groupId>
+	<artifactId>parent</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
-	
+
+	<modules>
+		<module>cp_classification</module>
+		<module>cp_regression</module>
+		<module>vap_classification</module>
+	</modules>
+
+
 	<!-- Common properties -->
 	<properties>
 		<cpsign.version>1.5.0-beta5</cpsign.version>
@@ -25,27 +32,13 @@
 		<maven.build.timestamp.format>yyyyMMdd_HHmmss</maven.build.timestamp.format>
 		<mf.impl.vendor>Aros Bio AB</mf.impl.vendor>
 	</properties>
-	
-	
+
 	<repositories>
-	    <repository>
-	        <id>project.local</id>
-	        <name>project</name>
-	        <url>file:${project.basedir}/../services_parent/local_mvn_repo</url>
-	    </repository>
-	    <repository>
-	        <id>central</id>
-	        <name>Central Repository</name>
-	        <url>https://repo.maven.apache.org/maven2</url>
-	        <layout>default</layout>
-	        <snapshots>
-	            <enabled>false</enabled>
-	        </snapshots>
-	    </repository>
-	</repositories>
-	
-	<!-- 
-	<repositories>
+		<repository>
+			<id>project.local</id>
+			<name>project</name>
+			<url>file:${project.basedir}/../local_mvn_repo</url>
+		</repository>
 		<repository>
 			<id>central</id>
 			<name>Central Repository</name>
@@ -55,12 +48,12 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-		<repository>
-			<id>jitpack.io</id>
-			<url>https://jitpack.io</url>
-		</repository>
 	</repositories>
-	-->
+
+	<!-- <repositories> <repository> <id>central</id> <name>Central Repository</name> 
+		<url>https://repo.maven.apache.org/maven2</url> <layout>default</layout> 
+		<snapshots> <enabled>false</enabled> </snapshots> </repository> <repository> 
+		<id>jitpack.io</id> <url>https://jitpack.io</url> </repository> </repositories> -->
 	<dependencies>
 		<!-- Test deps -->
 		<dependency>
@@ -146,7 +139,7 @@
 		</dependency>
 
 	</dependencies>
-		 
+
 	<build>
 		<plugins>
 			<plugin>
