@@ -7,6 +7,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({ 
 	com.arosbio.api.model.TestSerialization.class,
+	com.arosbio.services.utils.TestCDKLock.class,
 	com.arosbio.services.utils.TestParseMolecule.class,
 	})
 public class AllTests {}

@@ -1,4 +1,4 @@
-package com.arosbio.api.utils;
+package com.arosbio.services.utils;
 
 import java.io.IOException;
 

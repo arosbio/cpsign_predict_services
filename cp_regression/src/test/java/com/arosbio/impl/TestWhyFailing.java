@@ -10,6 +10,7 @@ import com.arosbio.modeling.cheminf.SignaturesCPRegression;
 import com.arosbio.modeling.cheminf.SignaturesCPRegression.SignificantSignatureCPRegression;
 import com.arosbio.modeling.data.FeatureVector;
 import com.arosbio.modeling.io.ModelLoader;
+import com.arosbio.services.utils.ChemUtils;
 
 public class TestWhyFailing {
 	

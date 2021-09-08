@@ -10,9 +10,20 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
-import com.arosbio.impl.ChemUtils;
+import com.arosbio.services.utils.ChemUtils;
+import com.arosbio.services.utils.Utils;
 
 public class TestParseMolecule {
+	
+	@Test
+	public void testParseFailingSmiles() throws Exception {
+		String smiles = "C#[C+]1CCN(N)C1=N";
+		String out = Utils.decodeURL(smiles);
+		System.err.println(out);
+		IAtomContainer mol = ChemUtils.parseMolOrFail(out);
+		String resSmiles = ChemUtils.getAsSmiles(mol, out);
+		System.err.println(resSmiles);
+	}
 	
 	@Test
 	public void testParseSMILES() throws MalformedURLException, IllegalArgumentException {

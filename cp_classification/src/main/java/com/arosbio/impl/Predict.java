@@ -44,6 +44,9 @@ import com.arosbio.modeling.CPSignFactory;
 import com.arosbio.modeling.cheminf.SignaturesCPClassification;
 import com.arosbio.modeling.cheminf.SignificantSignature;
 import com.arosbio.modeling.io.ModelLoader;
+import com.arosbio.services.utils.CDKMutexLock;
+import com.arosbio.services.utils.ChemUtils;
+import com.arosbio.services.utils.Utils;
 
 
 public class Predict {

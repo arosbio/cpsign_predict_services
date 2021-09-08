@@ -33,6 +33,14 @@
 			</build>
 		</profile>
 	</profiles>
+	
+	<dependencies>
+		<dependency>
+			<groupId>com.arosbio.services</groupId>
+			<artifactId>utils</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<sourceDirectory>src/main/java</sourceDirectory>

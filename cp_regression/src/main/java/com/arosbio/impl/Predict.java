@@ -43,6 +43,9 @@ import com.arosbio.modeling.cheminf.SignaturesCPRegression;
 import com.arosbio.modeling.cheminf.SignificantSignature;
 import com.arosbio.modeling.io.ModelLoader;
 import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
+import com.arosbio.services.utils.CDKMutexLock;
+import com.arosbio.services.utils.ChemUtils;
+import com.arosbio.services.utils.Utils;
 import com.google.common.collect.Range;
 
 public class Predict {

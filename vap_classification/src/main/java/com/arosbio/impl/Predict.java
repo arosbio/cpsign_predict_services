@@ -45,6 +45,9 @@ import com.arosbio.modeling.cheminf.SignaturesVAPClassification;
 import com.arosbio.modeling.cheminf.SignaturesVAPClassification.SignaturesCVAPResult;
 import com.arosbio.modeling.cheminf.SignificantSignature;
 import com.arosbio.modeling.io.ModelLoader;
+import com.arosbio.services.utils.CDKMutexLock;
+import com.arosbio.services.utils.ChemUtils;
+import com.arosbio.services.utils.Utils;
 
 public class Predict {
 
