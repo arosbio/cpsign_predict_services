@@ -158,20 +158,24 @@ public class PredictApi  {
 			@Parameter(description = "Compound structure notation using SMILES or MDL format", 
 			required=false, 
 			example="CCCCC=O")
-			@QueryParam("molecule") String molecule,
+			@QueryParam("molecule") 
+			String molecule,
 
 			@Parameter(description = "The desired confidence of the prediction", required=false, example="0.8", 
 				schema = @Schema(maximum="1.0", minimum="0.0"))
-			@QueryParam("confidence") Double confidence,
+			@QueryParam("confidence") 
+			Double confidence,
 
 			@Parameter(description = "Image width in pixels",
 				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE))
-			@DefaultValue("600") @QueryParam("imageWidth") 
+			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+			@QueryParam("imageWidth") 
 			int imageWidth,
 
 			@Parameter(description = "Image height in pixels",
 				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE)) 
-			@DefaultValue("600") @QueryParam("imageHeight") 
+			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+			@QueryParam("imageHeight") 
 			int imageHeight,
 
 			@Parameter(description = "Add title to the image (using the model name)")
@@ -214,21 +218,23 @@ public class PredictApi  {
 			@Parameter(description = "Compound structure notation using SMILES or MDL format", 
 			required=false, 
 			example="CCCCC=O")
-			@FormParam("molecule") String molecule,
+			@FormParam("molecule") 
+			String molecule,
 
 			@Parameter(description = "The desired confidence of the prediction", required=false, example="0.8", 
 				schema = @Schema(maximum="1.0", minimum="0.0"))
-			@FormParam("confidence") Double confidence,
+			@FormParam("confidence") 
+			Double confidence,
 
 			@Parameter(description = "Image width in pixels",
 				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE))
-			@DefaultValue("600") 
+			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
 			@FormParam("imageWidth") 
 			int imageWidth,
 
 			@Parameter(description = "Image height in pixels",
 				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE)) 
-			@DefaultValue("600") 
+			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
 			@FormParam("imageHeight") 
 			int imageHeight,
 

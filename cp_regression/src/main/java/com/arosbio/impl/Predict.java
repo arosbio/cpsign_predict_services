@@ -60,9 +60,10 @@ public class Predict {
 	private static SignaturesCPRegression model;
 	private static CPSignFactory factory;
 
+	public static final int DEFAULT_IMAGE_WH = 600;
 	public static final int MIN_IMAGE_SIZE = 100;
 	public static final int MAX_IMAGE_SIZE = 5000;
-
+	
 
 	static {
 		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null?System.getenv(LICENSE_FILE_ENV_VARIABLE):DEFAULT_LICENSE_PATH;

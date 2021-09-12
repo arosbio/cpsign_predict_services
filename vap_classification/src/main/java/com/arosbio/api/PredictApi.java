@@ -2,7 +2,9 @@ package com.arosbio.api;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -83,6 +85,41 @@ public class PredictApi  {
 		}
 	}
 
+	@Path("/predict")
+	@POST
+	@Consumes({ MediaType.MULTIPART_FORM_DATA })
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Operation(
+			summary = "Make a prediction on a given molecule", 
+			tags={"Predict"},
+			description = "Predict a given molecule in SMILES or MDL v2000/v3000 format. In case a MDL is sent, it must be properly URL-encoded in UTF-8. You can use for instance https://www.urlencoder.org/ to encode your file.", 
+			responses = { 
+					@ApiResponse(responseCode = "200", description = "OK", content = @Content(
+							schema = @Schema(implementation = PredictionResult.class))),
+
+					@ApiResponse(responseCode = "400", description = "Bad Request",content = @Content(
+							schema = @Schema(implementation = BadRequestError.class))),
+
+					@ApiResponse(responseCode = "500", description = "Prediction error", content = @Content(
+							schema = @Schema(implementation = ErrorResponse.class))),
+
+					@ApiResponse(responseCode = "503", description = "Service not available", content = @Content(
+							schema = @Schema(implementation = ErrorResponse.class)))
+			}
+			)
+	public Response predictPost(
+
+			@Parameter(description = "Compound structure notation using SMILES or MDL format", required=true, example="CCCCC=O")
+			@FormParam("molecule") 
+			String molecule,
+
+			@Context SecurityContext securityContext) {
+		try {
+			return Predict.doPredict(molecule);
+		} catch (Exception e) {
+			return convertToErrorResponse(e);
+		}
+	}
 
 	@Path("/predictImage")
 	@GET
@@ -110,20 +147,24 @@ public class PredictApi  {
 			@Parameter(description = "Compound structure notation using SMILES or MDL format", 
 			required=false, 
 			example="CCCCC=O")
-			@QueryParam("molecule") String molecule,
+			@QueryParam("molecule") 
+			String molecule,
 
 			@Parameter(description = "Image width in pixels",
 				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE))
-			@DefaultValue("600") @QueryParam("imageWidth") 
+			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+			@QueryParam("imageWidth") 
 			int imageWidth,
 
 			@Parameter(description = "Image height in pixels",
 				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE)) 
-			@DefaultValue("600") @QueryParam("imageHeight") 
+			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+			@QueryParam("imageHeight") 
 			int imageHeight,
 
 			@Parameter(description = "Write probabilities in the figure")
-			@DefaultValue("false") @QueryParam("addProbability") 
+			@DefaultValue("false") 
+			@QueryParam("addProbability") 
 			boolean addProbs,
 			
 			@Parameter(description = "Add title to the image (using the model name)")
@@ -140,6 +181,68 @@ public class PredictApi  {
 		}
 	}
 
+	
+	@Path("/predictImage")
+	@POST
+	@Consumes({ MediaType.MULTIPART_FORM_DATA })
+	@Produces({ "image/png", MediaType.APPLICATION_JSON }) 
+	@Operation(
+			summary = "Make a prediction image for the given molecule",
+			tags={"Predict"},
+			description = "Predict a given molecule to get a prediction image, accepts SMILES or MDL v2000/v3000 format. In case a MDL is sent, it must be properly URL-encoded in UTF-8. You can use for instance https://www.urlencoder.org/ to encode your file.",
+			responses = { 
+					@ApiResponse(responseCode = "200", description = "OK"),
+
+					@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(
+							schema = @Schema(implementation = BadRequestError.class))),
+
+					@ApiResponse(responseCode = "500", description = "Prediction error", content = @Content(
+							schema = @Schema(implementation = ErrorResponse.class))),
+
+					@ApiResponse(responseCode = "503", description = "Service not available", content = @Content(
+							schema = @Schema(implementation = ErrorResponse.class))) 
+			}
+			)
+	public Response predictImagePost( 
+
+			@Parameter(description = "Compound structure notation using SMILES or MDL format", 
+			required=false, 
+			example="CCCCC=O")
+			@FormParam("molecule") 
+			String molecule,
+
+			@Parameter(description = "Image width in pixels",
+				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE))
+			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH)
+			@FormParam(""+Predict.DEFAULT_IMAGE_WH) 
+			int imageWidth,
+
+			@Parameter(description = "Image height in pixels",
+				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE)) 
+			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+			@FormParam("imageHeight") 
+			int imageHeight,
+
+			@Parameter(description = "Write probabilities in the figure")
+			@DefaultValue("false") 
+			@FormParam("addProbability") 
+			boolean addProbs,
+			
+			@Parameter(description = "Add title to the image (using the model name)")
+			@DefaultValue("false") 
+			@FormParam("addTitle") 
+			boolean addTitle,
+
+			@Context SecurityContext securityContext ) {
+		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
+		try {
+			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addProbs, addTitle); 
+		} catch (Exception e) {
+			return convertToErrorResponse(e);
+		}
+	}
+
+	
 	@Path("/health")
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON })

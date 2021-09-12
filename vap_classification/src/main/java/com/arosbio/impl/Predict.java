@@ -61,6 +61,7 @@ public class Predict {
 	private static SignaturesVAPClassification model;
 	private static CPSignFactory factory;
 
+	public static final int DEFAULT_IMAGE_WH = 600;
 	public static final int MIN_IMAGE_SIZE = 100;
 	public static final int MAX_IMAGE_SIZE = 5000;
 
