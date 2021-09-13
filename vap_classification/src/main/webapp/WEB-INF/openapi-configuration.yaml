@@ -8,6 +8,6 @@ openAPI:
     contact:
       name: Aros Bio
       email: ola@arosbio.com
-      url: arosbio.com/
+      url: https://www.arosbio.com/
     license:
       name: "© Aros Bio - All rights reserved"
