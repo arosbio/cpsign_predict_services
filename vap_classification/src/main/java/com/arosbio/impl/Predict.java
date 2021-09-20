@@ -32,6 +32,7 @@ import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.PredictionResult;
 import com.arosbio.api.model.ProbabilityMapping;
 import com.arosbio.api.model.ServiceRunning;
+import com.arosbio.auth.InvalidLicenseException;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
 import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.arosbio.chem.io.out.fields.ColorGradientField;
@@ -68,7 +69,7 @@ public class Predict {
 	static {
 
 		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null ? System.getenv(LICENSE_FILE_ENV_VARIABLE) : DEFAULT_LICENSE_PATH;
-		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE) : DEFAULT_MODEL_PATH;
+		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null? System.getenv(MODEL_FILE_ENV_VARIABLE) : DEFAULT_MODEL_PATH;
 
 		// Get the root logger for cpsign 
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
@@ -87,9 +88,13 @@ public class Predict {
 
 		// Instantiate the factory 
 		try {
+			logger.info("Attempting to load license from: " + license_file);
 			URI license_uri = new File(license_file).toURI();
 			factory = new CPSignFactory( license_uri );
 			logger.info("Initiated the CPSignFactory");
+		} catch (InvalidLicenseException e) {
+			logger.error("Got exception when trying to instantiate CPSignFactory: " + e.getMessage());
+			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Invalid license at server init - service needs to be re-deployed with a valid license");
 		} catch (RuntimeException | IOException re){
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
 			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No license found at server init - service needs to be re-deployed with a valid license");
@@ -175,7 +180,7 @@ public class Predict {
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, decodedMolData);
-			logger.info("prediction-task for smiles=" + smiles);
+			logger.debug("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Could not generate SMILES for molecule") );
@@ -207,7 +212,7 @@ public class Predict {
 	}
 
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addProbsField, boolean addTitle) {
-		logger.info("got a predict-image task, imageWidth="+imageWidth+", imageHeight="+imageHeight);
+		logger.debug("got a predict-image task, imageWidth="+imageWidth+", imageHeight="+imageHeight);
 
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
