@@ -192,12 +192,12 @@ public class PredictApi  {
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
-			@Parameter(description = "Write p-values in figure")
+			@Parameter(description = "Write p-values in image")
 			@DefaultValue("false") 
 			@QueryParam("addPvals") 
 			boolean addPvals,
 
-			@Parameter(description = "Add title to the image (using the model name)")
+			@Parameter(description = "Add title to the image (the model name)")
 			@DefaultValue("false") 
 			@QueryParam("addTitle") 
 			boolean addTitle,
@@ -251,12 +251,12 @@ public class PredictApi  {
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
-			@Parameter(description = "Write p-values in figure")
+			@Parameter(description = "Write p-values in image")
 			@DefaultValue("false") 
 			@QueryParam("addPvals") 
 			boolean addPvals,
 
-			@Parameter(description = "Add title to the image (using the model name)")
+			@Parameter(description = "Add title to the image (the model name)")
 			@DefaultValue("false") 
 			@QueryParam("addTitle") 
 			boolean addTitle,

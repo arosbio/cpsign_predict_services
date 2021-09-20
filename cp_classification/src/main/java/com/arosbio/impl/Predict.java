@@ -193,7 +193,7 @@ public class Predict {
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, decodedMolData);
-			logger.info("prediction-task for smiles=" + smiles);
+			logger.debug("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Could not generate SMILES for molecule") );

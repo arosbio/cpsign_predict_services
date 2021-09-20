@@ -29,6 +29,7 @@ import com.arosbio.api.model.ErrorResponse;
 import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.RegressionResult;
 import com.arosbio.api.model.ServiceRunning;
+import com.arosbio.auth.InvalidLicenseException;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
 import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.arosbio.chem.io.out.fields.ColorGradientField;
@@ -85,9 +86,13 @@ public class Predict {
 
 		// Instantiate the factory 
 		try {
+			logger.info("Attempting to load license from: " + license_file);
 			URI license_uri = new File(license_file).toURI();
 			factory = new CPSignFactory( license_uri );
 			logger.info("Initiated the CPSignFactory");
+		} catch (InvalidLicenseException e) {
+			logger.error("Got exception when trying to instantiate CPSignFactory: " + e.getMessage());
+			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Invalid license at server init - service needs to be re-deployed with a valid license");
 		} catch (RuntimeException | IOException re){
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
 			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No license found at server init - service needs to be re-deployed with a valid license");

@@ -207,7 +207,7 @@ public class PredictApi {
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
-			@Parameter(description = "Add title to the image (using the model name)")
+			@Parameter(description = "Add title to the image (the model name)")
 			@DefaultValue("false") 
 			@QueryParam("addTitle") 
 			boolean addTitle,
@@ -266,7 +266,7 @@ public class PredictApi {
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
-			@Parameter(description = "Add title to the image (using the model name)")
+			@Parameter(description = "Add title to the image (the model name)")
 			@DefaultValue("false") 
 			@QueryParam("addTitle") 
 			boolean addTitle,

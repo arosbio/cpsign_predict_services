@@ -144,7 +144,7 @@ public class RestAPI_IT {
 	public void testPredictImagePOST() {
 		System.out.println(" =========== Running predictImagePOST =========== ");
 		
-		Response resp = given().queryParam("title", "true").queryParam("imageWidth",300).body(TEST_SMILES).post("/predictImage"); //.contentType(ContentType.URLENC)
+		Response resp = given().queryParam("title", "true").queryParam("imageWidth",300).body(TEST_SMILES).post("/predictImage");
 		resp.then()
 			.statusCode(200);
 		byte[] imgBytes = resp.getBody().asByteArray();
@@ -158,7 +158,7 @@ public class RestAPI_IT {
 		
 		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/resources/mdl_v2000.txt")), StandardCharsets.UTF_8);
 		
-		Response resp = given().queryParam("title", "true").queryParam("imageWidth",300).body(mdl).post("/predictImage"); //.contentType(ContentType.URLENC)
+		Response resp = given().queryParam("title", "true").queryParam("imageWidth",300).body(mdl).post("/predictImage");
 		resp.then()
 			.statusCode(200);
 		byte[] imgBytes = resp.getBody().asByteArray();

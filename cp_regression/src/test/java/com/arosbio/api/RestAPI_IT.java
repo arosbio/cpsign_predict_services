@@ -8,14 +8,19 @@ import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.port;
 import static io.restassured.RestAssured.reset;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notANumber;
 import static org.hamcrest.Matchers.notNullValue;
 
 import java.io.FileInputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -30,7 +35,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.cliftonlabs.json_simple.JsonException;
 
 import io.restassured.http.ContentType;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import utils.Utils;
 
