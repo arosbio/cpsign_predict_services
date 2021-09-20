@@ -1,7 +1,6 @@
 package utils;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 public class Utils {
 
@@ -10,16 +9,16 @@ public class Utils {
 	public static String MODEL_PATH;
 	
 	static {
-		EXPIRED_LICENSE_PATH = Empty.class.getResource("/resources/cpsign-old.license").getPath();
-		VALID_LICENSE_PATH = Empty.class.getResource("/resources/cpsign-std.license").getPath();
-		MODEL_PATH = Empty.class.getResource("/resources/test-model-1.5.0.cpsign").getPath();
+		EXPIRED_LICENSE_PATH = Utils.class.getResource("/resources/cpsign-old.license").getPath();
+		VALID_LICENSE_PATH = Utils.class.getResource("/resources/cpsign-std.license").getPath();
+		MODEL_PATH = Utils.class.getResource("/resources/test-model-1.5.0.cpsign").getPath();
 	}
 	
 	public static String getPath(String relPath) {
-		return Empty.class.getResource(relPath).getPath();
+		return Utils.class.getResource(relPath).getPath();
 	}
 	
-	@Test
+//	@Test
 	public void testCheckValidURLs() {
 		System.err.println("valid: "+VALID_LICENSE_PATH);
 		System.err.println("exp: "+EXPIRED_LICENSE_PATH);
