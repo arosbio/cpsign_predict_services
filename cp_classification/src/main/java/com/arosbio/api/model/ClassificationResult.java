@@ -7,18 +7,19 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ClassificationResult   {
+public class ClassificationResult {
+	
 	@JsonProperty("smiles")
 	@NotNull
-	private final String smiles;
-
+	public String smiles;
+	
 	@JsonProperty("prediction")
-	private List<PValueMapping> prediction;
+	public List<PValueMapping> prediction;
 	
 	@JsonProperty("modelName")
 	@NotNull
-	private final String modelName;
-
+	public String modelName;
+	
 	public ClassificationResult(List<PValueMapping> pvalues, String smiles, String modelName) {
 		this.smiles = smiles;
 		this.prediction = pvalues;
@@ -43,6 +44,6 @@ public class ClassificationResult   {
 	public int hashCode() {
 		return Objects.hash(smiles, prediction, modelName);
 	}
-
+	
 }
 

@@ -10,10 +10,11 @@ import com.arosbio.commons.MathUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class PValueMapping {
-	@JsonProperty("label")
+	
+	@JsonProperty()
 	private final String label;
 
-	@JsonProperty("pValue")
+	@JsonProperty()
 	@NotNull
 	@DecimalMin("0.0") @DecimalMax("1.0")
 	private final Double pValue;

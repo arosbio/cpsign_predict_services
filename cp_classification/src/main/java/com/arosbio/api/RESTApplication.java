@@ -16,6 +16,7 @@ public class RESTApplication extends ResourceConfig {
 		register(PredictApi.class);
 		register(OpenApiResource.class);
 		register(JacksonFeature.class); // Jackson-serialization
+//		register(org.glassfish.jersey.media.multipart.MultiPartFeature.class);
 	}
 	
 }

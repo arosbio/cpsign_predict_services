@@ -5,10 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.arosbio.services</groupId>
 	<artifactId>parent</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.4</version>
 	<packaging>pom</packaging>
 
 	<modules>
+        <module>service_utils</module>
 		<module>cp_classification</module>
 		<module>cp_regression</module>
 		<module>vap_classification</module>
@@ -17,20 +18,25 @@
 
 	<!-- Common properties -->
 	<properties>
+		<target-port>8080</target-port>
 		<cpsign.version>1.5.0-beta7</cpsign.version>
-		<swagger-core-version>2.1.5</swagger-core-version>
+		<swagger-core-version>2.1.10</swagger-core-version>
 		<jetty-version>9.4.32.v20200930</jetty-version>
 		<jersey2-version>2.32</jersey2-version>
-		<jackson-version>2.10.3</jackson-version>
+		<jackson-version>2.12.1</jackson-version>
 		<junit-version>4.13</junit-version>
 		<logback-version>1.1.7</logback-version>
 		<servlet-api-version>3.1.0</servlet-api-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.failsafe.version>3.0.0-M5</maven.failsafe.version>
+		<maven.surefire.version>3.0.0-M5</maven.surefire.version>
 		<application.vendor>Aros Bio AB</application.vendor>
 		<maven.build.timestamp.format>yyyyMMdd_HHmmss</maven.build.timestamp.format>
 		<mf.impl.vendor>Aros Bio AB</mf.impl.vendor>
+        <maven.war.version>3.3.2</maven.war.version>
+        <rest-assured.version>4.4.0</rest-assured.version>
 	</properties>
 
 	<repositories>
@@ -50,22 +56,18 @@
 		</repository>
 	</repositories>
 
-	<!-- <repositories> <repository> <id>central</id> <name>Central Repository</name> 
-		<url>https://repo.maven.apache.org/maven2</url> <layout>default</layout> 
-		<snapshots> <enabled>false</enabled> </snapshots> </repository> <repository> 
-		<id>jitpack.io</id> <url>https://jitpack.io</url> </repository> </repositories> -->
 	<dependencies>
 		<!-- Test deps -->
 		<dependency>
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
-			<version>4.3.1</version>
+			<version>${rest-assured.version}</version>
 			<scope>test</scope>
 			<exclusions>
 				<exclusion>
+                    <!-- This is already included in CPSign -->
 					<groupId>org.apache.commons</groupId>
 					<artifactId>commons-lang3</artifactId>
-					<!-- This is from an older version and this is already included in CPSign -->
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -90,6 +92,29 @@
 			<version>${cpsign.version}</version>
 		</dependency>
 
+		<!-- Requirements from Swagger-Core -->
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+
 		<!-- OpenAPI -->
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
@@ -98,7 +123,7 @@
 		</dependency>
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
-			<artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+			<artifactId>swagger-jaxrs2-servlet-initializer-v2</artifactId>
 			<version>${swagger-core-version}</version>
 		</dependency>
 		<dependency>
@@ -121,11 +146,13 @@
 			<artifactId>jersey-container-servlet</artifactId>
 			<version>${jersey2-version}</version>
 		</dependency>
+		<!-- 
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-multipart</artifactId>
 			<version>${jersey2-version}</version>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>
@@ -149,6 +176,58 @@
 					<source>${maven.compiler.source}</source>
 					<target>${maven.compiler.target}</target>
 				</configuration>
+			</plugin>
+
+			<!-- Test plugins -->
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${maven.surefire.version}</version>
+                <!-- make it possible to skip unit-tests -->
+                <configuration>
+                    <skip>${skipUnitTests}</skip>
+                </configuration>
+
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>${jetty-version}</version>
+				<configuration>
+					<httpConnector>
+						<port>${target-port}</port>
+					</httpConnector>
+					<stopKey>quit</stopKey>
+					<stopPort>9000</stopPort>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start-jetty</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>stop</goal><!-- Stop any running jetty instances -->
+							<goal>start</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>stop-jetty</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>${maven.failsafe.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

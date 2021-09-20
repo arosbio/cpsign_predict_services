@@ -32,6 +32,7 @@ import com.arosbio.api.model.ErrorResponse;
 import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.PValueMapping;
 import com.arosbio.api.model.ServiceRunning;
+import com.arosbio.auth.InvalidLicenseException;
 import com.arosbio.chem.io.out.GradientFigureBuilder;
 import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
 import com.arosbio.chem.io.out.fields.ColorGradientField;
@@ -66,9 +67,17 @@ public class Predict {
 	public static final int MAX_IMAGE_SIZE = 5000;
 
 	static {
+		init();
+	}
+		
+	public static synchronized void init() {
+		
+		factory = null;
+		serverErrorResponse = null;
+		model = null;
 
 		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null ? System.getenv(LICENSE_FILE_ENV_VARIABLE) : DEFAULT_LICENSE_PATH;
-		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE) : DEFAULT_MODEL_PATH;
+		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null ? System.getenv(MODEL_FILE_ENV_VARIABLE) : DEFAULT_MODEL_PATH;
 
 		// Get the root logger for cpsign 
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
@@ -87,12 +96,19 @@ public class Predict {
 
 		// Instantiate the factory 
 		try {
+			logger.info("Attempting to load license from: " + license_file);
 			URI license_uri = new File(license_file).toURI();
 			factory = new CPSignFactory( license_uri );
-			logger.info("Initiated the CPSignFactory");
+			PermissionsCheck.assertPredictPriv();
+			logger.info("Validated license and init the CPSignFactory");
+		} catch (InvalidLicenseException e) {
+			logger.error("Got exception when trying to instantiate CPSignFactory: " + e.getMessage());
+			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Invalid license at server init - service needs to be re-deployed with a valid license");
+			return;
 		} catch (RuntimeException | IOException re){
 			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
 			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No license found at server init - service needs to be re-deployed with a valid license");
+			return;
 		}
 
 		// load the model - only if no error previously encountered
@@ -107,8 +123,8 @@ public class Predict {
 					throw new IllegalArgumentException("Cannot read from URI: " + modelURI);
 				}
 			} catch (Exception e) {
-				logger.error("No model could be loaded", e);
-				serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No model found at server init - service needs to be re-depolyed with a valid model config");
+				logger.error("No model could be loaded: " +e.getMessage());
+				serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No model found at server init - service needs to be re-deployed with a valid model config");
 			}
 
 			if (serverErrorResponse == null) {
@@ -122,7 +138,7 @@ public class Predict {
 					}
 					logger.info("Loaded model");
 				} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
-					logger.error("Could not load the model", e);
+					logger.error("Could not load the model: " +  e.getMessage());
 					serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Model could not be loaded at server init ("+e.getMessage()+") - service needs to be re-deployed");
 				}
 			}
@@ -151,6 +167,8 @@ public class Predict {
 	public static Response doPredict(String molecule) {
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
+		
+		logger.debug("Given molecule: " + molecule);
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
@@ -205,7 +223,7 @@ public class Predict {
 	}
 
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
-		logger.info("got a predict-image task, imageWidth="+imageWidth+", imageHeight="+imageHeight);
+		logger.debug("got a predict-image task, imageWidth="+imageWidth+", imageHeight="+imageHeight);
 
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
@@ -213,13 +231,13 @@ public class Predict {
 		if (! isValidSize(imageWidth) && ! isValidSize(imageHeight)) {
 			logger.warn("Failing execution due to invalid image size");
 			return Utils.getResponse(
-					new BadRequestError(400,"image width and height must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageWidth", "imageHeight")));
+					new BadRequestError(BAD_REQUEST,"image width and height must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageWidth", "imageHeight")));
 		}
 
 		if (! isValidSize(imageWidth)){
 			logger.warn("Failing execution due to invalid image size");
 			return Utils.getResponse(
-					new BadRequestError(400,"image width must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageWidth")));
+					new BadRequestError(BAD_REQUEST,"image width must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageWidth")));
 		}
 
 		if (! isValidSize(imageHeight)){

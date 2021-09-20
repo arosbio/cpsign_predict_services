@@ -7,16 +7,11 @@
 	<parent>
 		<groupId>com.arosbio.services</groupId>
 		<artifactId>parent</artifactId>
-		<version>1.0.0</version>
-		<!-- <relativePath>../services_parent/pom.xml</relativePath>  -->
+		<version>1.0.4</version>
 	</parent>
 	
 	<artifactId>utils</artifactId>
 	<packaging>jar</packaging>
 	<name>Services.utils</name>
-	
-	<build>
-		<sourceDirectory>src/main/java</sourceDirectory>
-	</build>
 	
 </project>

@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ServiceRunning {
 	
+	public static final String OK_MSG = "Service running";
+	
 	@JsonProperty
-	private final String message="Service running";
+	public final String message = OK_MSG;
 	
 	public String toString() {
 		return message;

@@ -8,15 +8,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ModelInfo {
 	
-	@JsonProperty("")
+	@JsonProperty()
 	@NotNull
 	public String modelName;
 	
-	@JsonProperty("")
+	@JsonProperty()
 	@NotNull
 	public String version;
 	
-	@JsonProperty("")
+	@JsonProperty()
 	public String category;
 	
 	public ModelInfo(com.arosbio.modeling.io.ModelInfo info) {

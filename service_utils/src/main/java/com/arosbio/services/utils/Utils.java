@@ -12,6 +12,8 @@ import com.arosbio.api.model.ErrorResponse;
 public class Utils {
 	
 	private static final int MAX_NUM_STACK_TO_LOGG = 10;
+	
+	public static final String PNG_MEDIA_TYPE = "image/png";
 
 	public static String getStackTrace(Throwable e) {
 		StringBuilder sb = new StringBuilder();

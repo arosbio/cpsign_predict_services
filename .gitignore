@@ -1,3 +1,5 @@
+**/resources/resources/**
+**/target/
 /bin/
 swagger/.classification_swagger.yaml.swp
 os_templates/.classification_build.yaml.swp

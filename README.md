@@ -3,9 +3,23 @@
 Prediction service for runnign cpsign predictive models as REST services.
 
 ## This repo
-This repo contains a Maven Parent pom in the root and three service-implementaitons (`cp_classification`, `cp_regression` and `vap_classification`). There is a local maven file-repository in the folder `local_mvn_repo` where new versions of CPSign and other common libraries can be put. 
+This repo contains a Maven Parent pom in the root and three service-implementaitons (`cp_classification`, `cp_regression` and `vap_classification`). There is a local maven file-repository in the folder `local_mvn_repo` where new versions of CPSign and other common libraries can be put. To reduce the code duplication a separate java project (`service_utils`) is used for grouping common utility function and models, so that updates can be applied more easily and pushed to all underlying model services. The folder `web_res` in the root is used for common things that should be put in the final WAR folder, which is handled using the [maven WAR plugin <webResources> tag](https://maven.apache.org/plugins/maven-war-plugin/examples/adding-filtering-webresources.html). 
+
+### `web_res`
+Currently we bundle the [Swagger UI](https://swagger.io/docs/open-source-tools/swagger-ui/usage/installation/) version 3.52.2 using 'standalone installation' and the JSME app. If updates are needed, now there's a single location to make them. 
 
 ## Testing
+
+### Unit-testing utility code
+There is test suite in [service_utils](service_utils/src/test/java/suites/UnitTestSuite.java) that runs tests that are serverless and quick to run.
+
+### Integration tests 
+The integration tests requires a running service, meaning that they need a model that is loaded on startup so we have a fully functional service. These tests are run using `mvn verify` but in order for this to work, the system-properties `LICENSE_FILE` and `MODEL_FILE` must be set. To make this simpler there's a `run_IT_tests.sh` within each repo that sets these variables and runs the integration tests (but not the unit-tests). 
+
+### User-interactive testing
+To facilitate easy interactive testing each of the services includes a shell script that sets the environment variables to point to a model and license and starts up the service. You have to check these paths and update with valid model and license for this to run successfully. 
+
+### DIY - testing 
 As you can read in the following sections, the services require both a model and a valid license to work. Testing can then be performed using the maven-jetty-plugin, in the terminal you can thus run:
 ```
 export MODEL_FILE=<path-to-model>
