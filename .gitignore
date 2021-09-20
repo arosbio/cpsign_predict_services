@@ -1,7 +1,7 @@
 **/resources/resources/**
 **/target/
 /bin/
-swagger/.classification_swagger.yaml.swp
+**.license
 os_templates/.classification_build.yaml.swp
 os_templates/.classification_deploy.yaml.swp
 os_templates/.commands.sh.swp

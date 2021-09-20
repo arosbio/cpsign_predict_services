@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.security.InvalidKeyException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -133,6 +132,11 @@ public class Predict {
 
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
+		
+		if (confidence == null || confidence <0 || confidence>1) {
+			logger.debug("Invalid confidence=" + confidence);
+			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "Invalid confidence '"+confidence+"'", Arrays.asList("confidence")) );
+		}
 
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing arguments 'molecule'");
@@ -157,7 +161,7 @@ public class Predict {
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, decodedMolData);
-			logger.info("prediction-task for smiles=" + smiles);
+			logger.debug("prediction-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Could not generate SMILES for molecule") );
@@ -169,8 +173,6 @@ public class Predict {
 			CPRegressionPrediction res = null;
 			if (confidence != null) {
 				res = model.predict(molToPredict, confidence);
-			} else {
-				res = model.predict(molToPredict, new ArrayList<>());
 			}
 			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
 			return Response.ok( new RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()) ).build();
@@ -252,7 +254,7 @@ public class Predict {
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
-			logger.info("prediction-image-task for smiles=" + smiles);
+			logger.debug("prediction-image-task for smiles=" + smiles);
 		} catch (Exception e) {
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 			smiles = "<no SMILES available>"; 
