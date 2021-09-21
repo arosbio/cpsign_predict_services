@@ -10,14 +10,17 @@ Currently we bundle the [Swagger UI](https://swagger.io/docs/open-source-tools/s
 
 ## Testing
 
+### Requirements
+For all tests to run the services needs both valid models and cpsign licenses. For each service the tests rely on having a license in the location `src/test/resources/resources/cpsign.license` and a valid model (for the given service type) at location `src/test/resources/resources/test-model.cpsign`. For the `cp_classification` service there's also an alternative test-suite for TCP which requires a TCP-model in the location `src/test/resources/resources/test-model-tcp.cpsign` 
+
 ### Unit-testing utility code
 There is test suite in [service_utils](service_utils/src/test/java/suites/UnitTestSuite.java) that runs tests that are serverless and quick to run.
 
 ### Integration tests 
-The integration tests requires a running service, meaning that they need a model that is loaded on startup so we have a fully functional service. These tests are run using `mvn verify` but in order for this to work, the system-properties `LICENSE_FILE` and `MODEL_FILE` must be set. To make this simpler there's a `run_IT_tests.sh` within each repo that sets these variables and runs the integration tests (but not the unit-tests). 
+The integration tests requires a running service, meaning that they need a model that is loaded on startup so we have a fully functional service. These tests are run using `mvn verify` but in order for this to work, the system-properties `LICENSE_FILE` and `MODEL_FILE` must be set. To make this simpler there's a `run_IT_tests.sh` within each repo that sets these variables and runs the integration tests. 
 
 ### User-interactive testing
-To facilitate easy interactive testing each of the services includes a shell script that sets the environment variables to point to a model and license and starts up the service. You have to check these paths and update with valid model and license for this to run successfully. 
+To facilitate easy interactive testing, each of the services includes a shell script that sets the environment variables to point to the resources outlined under Requirements and starts up the service.  
 
 ### DIY - testing 
 As you can read in the following sections, the services require both a model and a valid license to work. Testing can then be performed using the maven-jetty-plugin, in the terminal you can thus run:
@@ -27,12 +30,16 @@ export LICENSE_FILE=<path-to-license>
 mvn clean package jetty:run-war -DskipTests
 ```
 
-Currently there are a lot of warnings produced due to duplicate classes encountered when scanning the classpath when starting up the server (due to CPSign bundling all dependencies, so maven cannot resolve conflicts). But once finished you should be able to access api-definition at:
+Currently there are a lot of warnings produced due to duplicate classes encountered when scanning the classpath when starting up the server (due to CPSign bundling all dependencies, so maven cannot resolve conflicts). But once finished you should be able to access the Swagger UI at:
+`
+http://localhost:8080
+`
+The raw api-definition at:
 `
 http://localhost:8080/api/openapi.json
 ` 
 
-Test the drawing UI at:
+The drawing UI at:
 `
 http://localhost:8080/draw/
 `
