@@ -1,19 +1,36 @@
 package com.arosbio.services.utils;
 
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
+import org.slf4j.Logger;
+
+import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
 
 public class Utils {
-	
+	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Utils.class);
 	private static final int MAX_NUM_STACK_TO_LOGG = 10;
 	
 	public static final String PNG_MEDIA_TYPE = "image/png";
+	public static final int DEFAULT_IMAGE_WH = 600;
+	public static final int MIN_IMAGE_SIZE = 100;
+	public static final int MAX_IMAGE_SIZE = 5000;
 
 	public static String getStackTrace(Throwable e) {
 		StringBuilder sb = new StringBuilder();
@@ -54,6 +71,60 @@ public class Utils {
 
 	public static Response getResponse(ErrorResponse error) {
 		return Response.status(error.getCode()).entity(error).build();
+	}
+	
+	public static Response getEmptyImageResponse(int w, int h) {
+		try {
+			BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g2d = image.createGraphics();
+			g2d.setColor(Color.WHITE);
+			g2d.fillRect(0, 0, w, h);
+			g2d.dispose();
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(image, "png", baos);
+			byte[] imageData = baos.toByteArray();
+
+			return Response.ok( new ByteArrayInputStream(imageData) ).build();
+		} catch (IOException e) {
+			logger.info("Failed returning empty image for empty molecule input");
+			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error"));
+		}
+	}
+	
+	/**
+	 * Validate the size given the {@link MIN_IMAGE_SIZE} and {@link MAX_IMAGE_SIZE} 
+	 * @param w
+	 * @param h
+	 * @return <code>null</code> if all good, or a error-Response if invalid input
+	 */
+	public static Response validateImageSize(int w, int h) {
+		boolean validW = isValidSize(w);
+		boolean validH = isValidSize(h);
 		
+		if (! validW && ! validH) {
+			logger.warn("Failing execution due to invalid image size, WxH: " + w +'x'+h);
+			return getResponse(
+					new BadRequestError(BAD_REQUEST, 
+							String.format("Invalid imageWidth {%d} and imageHeight {%d}, both must be in the range [%d..%d]",
+									w,h,MIN_IMAGE_SIZE,MAX_IMAGE_SIZE), Arrays.asList("imageWidth", "imageHeight")));
+		} else if (! validW) {
+			logger.warn("Failing execution due to invalid image size, WxH: " + w +'x'+h);
+			return getResponse(
+					new BadRequestError(BAD_REQUEST, 
+							String.format("Invalid imageWidth {%d}, value must be in the range [%d..%d]",
+									w,MIN_IMAGE_SIZE,MAX_IMAGE_SIZE), Arrays.asList("imageWidth")));
+		} else if (! validH) {
+			logger.warn("Failing execution due to invalid image size, WxH: " + w +'x'+h);
+			return getResponse(
+					new BadRequestError(BAD_REQUEST, 
+							String.format("Invalid imageHeight {%d}, value must be in the range [%d..%d]",
+									h,MIN_IMAGE_SIZE,MAX_IMAGE_SIZE), Arrays.asList("imageHeight")));
+		}
+		
+		return null;
+	}
+	
+	private static boolean isValidSize(int size) {
+		return ! (size < MIN_IMAGE_SIZE || size > MAX_IMAGE_SIZE);
 	}
 }

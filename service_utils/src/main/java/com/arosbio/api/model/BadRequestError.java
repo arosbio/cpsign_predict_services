@@ -46,4 +46,8 @@ public class BadRequestError extends ErrorResponse {
 	public String toString() {
 		return super.toString();
 	}
+	
+	public List<String> getFields(){
+		return fields;
+	}
 }

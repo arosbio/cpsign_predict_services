@@ -1,21 +1,16 @@
 package com.arosbio.impl;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.security.InvalidKeyException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,10 +18,10 @@ import java.util.Map.Entry;
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
+import org.javatuples.Triplet;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
-import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ClassificationResult;
 import com.arosbio.api.model.ErrorResponse;
 import com.arosbio.api.model.ModelInfo;
@@ -61,10 +56,6 @@ public class Predict {
 	private static ErrorResponse serverErrorResponse = null;
 	private static SignaturesCPClassification model;
 	private static CPSignFactory factory;
-
-	public static final int DEFAULT_IMAGE_WH = 600;
-	public static final int MIN_IMAGE_SIZE = 100;
-	public static final int MAX_IMAGE_SIZE = 5000;
 
 	static {
 		init();
@@ -168,36 +159,12 @@ public class Predict {
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
 		
-		logger.debug("Given molecule: " + molecule);
-
-		if (molecule==null || molecule.isEmpty()){
-			logger.debug("Missing arguments 'molecule'");
-			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "missing argument", Arrays.asList("molecule")) );
+		Triplet<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, true);
+		if (molValidation.getValue2() != null) {
+			return molValidation.getValue2();
 		}
-
-		String decodedMolData = null;
-		try {
-			decodedMolData = Utils.decodeURL(molecule);
-		} catch (MalformedURLException e) {
-			return Utils.getResponse( new BadRequestError(BAD_REQUEST, "Could not decode molecule text", Arrays.asList("molecule")));
-		} 
-
-		IAtomContainer molToPredict = null;
-		try {
-			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
-		} catch (IllegalArgumentException e) {
-			return Utils.getResponse(new BadRequestError(BAD_REQUEST, e.getMessage(), Arrays.asList("molecule")) );
-		}
-
-		// Generate SMILES to have in the response
-		String smiles = null;
-		try {
-			smiles = ChemUtils.getAsSmiles(molToPredict, decodedMolData);
-			logger.debug("prediction-task for smiles=" + smiles);
-		} catch (Exception e) {
-			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
-			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Could not generate SMILES for molecule") );
-		}
+		IAtomContainer molToPredict = molValidation.getValue0();
+		String smiles = molValidation.getValue1();
 
 		CDKMutexLock.requireLock();
 		try {
@@ -218,77 +185,30 @@ public class Predict {
 		}
 	}
 
-	private static boolean isValidSize(int size) {
-		return ! (size < MIN_IMAGE_SIZE || size > MAX_IMAGE_SIZE);
-	}
-
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
 		logger.debug("got a predict-image task, imageWidth="+imageWidth+", imageHeight="+imageHeight);
 
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
-
-		if (! isValidSize(imageWidth) && ! isValidSize(imageHeight)) {
-			logger.warn("Failing execution due to invalid image size");
-			return Utils.getResponse(
-					new BadRequestError(BAD_REQUEST,"image width and height must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageWidth", "imageHeight")));
+		
+		Response r = Utils.validateImageSize(imageWidth, imageHeight);
+		if (r != null) {
+			return r;
 		}
-
-		if (! isValidSize(imageWidth)){
-			logger.warn("Failing execution due to invalid image size");
-			return Utils.getResponse(
-					new BadRequestError(BAD_REQUEST,"image width must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageWidth")));
+		
+		Triplet<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, false);
+		if (molValidation.getValue2() != null) {
+			return molValidation.getValue2();
 		}
+		IAtomContainer molToPredict = molValidation.getValue0();
+		String smiles = molValidation.getValue1();
 
-		if (! isValidSize(imageHeight)){
-			logger.warn("Failing execution due to invalid image size");
-			return Utils.getResponse(
-					new BadRequestError(BAD_REQUEST,"image height must be in the range ["+MIN_IMAGE_SIZE + ","+MAX_IMAGE_SIZE+"]", Arrays.asList("imageHeight")));
-		}
-
-		// Return empty img if no smiles sent
-		if (molecule==null || molecule.isEmpty()){
+		// Return empty img if no mol sent
+		if (molToPredict == null){
 			// return an empty img
-			try{
-				BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
-				Graphics2D g2d = image.createGraphics();
-				g2d.setColor(Color.WHITE);
-				g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
-				g2d.dispose();
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				ImageIO.write(image, "png", baos);
-				byte[] imageData = baos.toByteArray();
-
-				return Response.ok( new ByteArrayInputStream(imageData) ).build();
-			} catch (IOException e) {
-				logger.info("Failed returning empty image for empty smiles");
-				return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error"));
-			}
+			return Utils.getEmptyImageResponse(imageWidth, imageHeight);
 		}
-
-		String decodedMolData = null;
-		try {
-			decodedMolData = Utils.decodeURL(molecule);
-		} catch (MalformedURLException e) {
-			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "Could not decode molecule text", Arrays.asList("molecule")));
-		} 
-
-		IAtomContainer molToPredict = null;
-		try {
-			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
-		} catch (IllegalArgumentException e) {
-			return Utils.getResponse(new BadRequestError(BAD_REQUEST, e.getMessage(), Arrays.asList("molecule")));
-		}
-
-		// Get smiles representation of molecule (mostly for debugging)
-		String smiles = null;
-		try {
-			smiles = ChemUtils.getAsSmiles(molToPredict, molecule);
-		} catch (Exception e) {
-			smiles = "<no SMILES available>";
-			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
-		}
-
+		
 		// Make prediction 
 		SignificantSignature signSign = null;
 		Map<String,Double> pVals = null;
@@ -310,6 +230,7 @@ public class Predict {
 
 			// Create the depiction
 			MoleculeGradientDepictor depictor = new MoleculeGradientDepictor(GradientFactory.getDefaultBloomGradient());
+			depictor.setForceRecalculate2DCoords(false);
 			depictor.setImageHeight(imageHeight);
 			depictor.setImageWidth(imageWidth);
 			GradientFigureBuilder builder = new GradientFigureBuilder(depictor);

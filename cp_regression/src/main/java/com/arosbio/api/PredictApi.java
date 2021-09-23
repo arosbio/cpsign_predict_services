@@ -196,14 +196,14 @@ public class PredictApi {
 			Double confidence,
 
 			@Parameter(description = "Image width in pixels",
-				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE))
-			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+				schema = @Schema(maximum=""+Utils.MAX_IMAGE_SIZE, minimum=""+Utils.MIN_IMAGE_SIZE, defaultValue=""+Utils.DEFAULT_IMAGE_WH))
+			@DefaultValue(""+Utils.DEFAULT_IMAGE_WH) 
 			@QueryParam("imageWidth") 
 			int imageWidth,
 
 			@Parameter(description = "Image height in pixels",
-				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE)) 
-			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+				schema = @Schema(maximum=""+Utils.MAX_IMAGE_SIZE, minimum=""+Utils.MIN_IMAGE_SIZE, defaultValue=""+Utils.DEFAULT_IMAGE_WH)) 
+			@DefaultValue(""+Utils.DEFAULT_IMAGE_WH) 
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
@@ -255,14 +255,14 @@ public class PredictApi {
 			Double confidence,
 
 			@Parameter(description = "Image width in pixels",
-				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE))
-			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+				schema = @Schema(maximum=""+Utils.MAX_IMAGE_SIZE, minimum=""+Utils.MIN_IMAGE_SIZE, defaultValue=""+Utils.DEFAULT_IMAGE_WH))
+			@DefaultValue(""+Utils.DEFAULT_IMAGE_WH) 
 			@QueryParam("imageWidth") 
 			int imageWidth,
 
 			@Parameter(description = "Image height in pixels",
-				schema = @Schema(maximum=""+Predict.MAX_IMAGE_SIZE, minimum=""+Predict.MIN_IMAGE_SIZE)) 
-			@DefaultValue(""+Predict.DEFAULT_IMAGE_WH) 
+				schema = @Schema(maximum=""+Utils.MAX_IMAGE_SIZE, minimum=""+Utils.MIN_IMAGE_SIZE, defaultValue=""+Utils.DEFAULT_IMAGE_WH)) 
+			@DefaultValue(""+Utils.DEFAULT_IMAGE_WH) 
 			@QueryParam("imageHeight") 
 			int imageHeight,
 

@@ -5,11 +5,16 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.io.IOUtils;
+import org.javatuples.Triplet;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.openscience.cdk.interfaces.IAtomContainer;
+
+import com.arosbio.api.model.BadRequestError;
 
 import suites.classes.UnitTest;
 
@@ -57,4 +62,46 @@ public class TestParseMolecule {
 		Assert.assertEquals(1, ChemUtils.getAsSmiles(res, mdlStr).split("\n").length);
 	}
 	
+	
+	
+	@Test
+	public void testEmptyMDLFile() {
+		String v2000 = "\n" + 
+				"JME 2021-07-13 Wed Sep 22 10:12:45 GMT+200 2021\n" + 
+				"\n" + 
+				"  0  0  0  0  0  0  0  0  0  0999 V2000\n" + 
+				"M  END\n" + 
+				"";
+		
+		String v3000 = "\n" + 
+				"JME 2021-07-13 Wed Sep 22 10:08:16 GMT+200 2021\n" + 
+				"\n" + 
+				"  0  0  0  0  0  0  0  0  0  0999 V3000\n" + 
+				"M  V30 BEGIN CTAB\n" + 
+				"M  V30 COUNTS 0 0 0 0 0\n" + 
+				"M  V30 BEGIN ATOM\n" + 
+				"M  V30 END ATOM\n" + 
+				"M  V30 BEGIN BOND\n" + 
+				"M  V30 END BOND\n" + 
+				"M  V30 END CTAB\n" + 
+				"M  END\n" + 
+				"";
+		validateMol(v2000);
+		validateMol(v3000);
+	}
+	public static void validateMol(String empty) {
+		
+		// If failing for missing molecule
+		Triplet<IAtomContainer, String, Response> res = ChemUtils.validateMoleculeInput(empty, true);
+		Assert.assertNull(res.getValue0());
+		Assert.assertNull(res.getValue1());
+		Assert.assertNotNull(res.getValue2());
+		Assert.assertTrue(res.getValue2().getEntity() instanceof BadRequestError);
+		
+		// If not failing
+		res = ChemUtils.validateMoleculeInput(empty, false);
+		Assert.assertNull(res.getValue0());
+		Assert.assertNull(res.getValue1());
+		Assert.assertNull(res.getValue2());
+	}
 }

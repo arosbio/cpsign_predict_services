@@ -1,8 +1,15 @@
 package com.arosbio.services.utils;
 
 
-import java.io.ByteArrayInputStream;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
+import java.io.ByteArrayInputStream;
+import java.net.MalformedURLException;
+import java.util.Arrays;
+
+import javax.ws.rs.core.Response;
+
+import org.javatuples.Triplet;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -14,6 +21,8 @@ import org.openscience.cdk.smiles.SmiFlavor;
 import org.openscience.cdk.smiles.SmilesGenerator;
 import org.openscience.cdk.smiles.SmilesParser;
 import org.slf4j.Logger;
+
+import com.arosbio.api.model.BadRequestError;
 
 public class ChemUtils {
 
@@ -70,5 +79,63 @@ public class ChemUtils {
 		if (originalMol.split("\n",2).length == 1)
 			return originalMol;
 		return sg.create(mol);
+	}
+	
+	public static Triplet<IAtomContainer,String,Response> validateMoleculeInput(
+			String molecule, boolean failIfMissing){
+		
+		if (molecule==null || molecule.isEmpty()){
+			logger.debug("Missing argument 'molecule'");
+			if (failIfMissing)
+				return Triplet.with(null, null, 
+						Utils.getResponse(
+								new BadRequestError(BAD_REQUEST, "missing argument", 
+										Arrays.asList("molecule")) ));
+			else
+				return Triplet.with(null, null, null);
+		}
+
+		String decodedMolData = null;
+		try {
+			decodedMolData = Utils.decodeURL(molecule);
+		} catch (MalformedURLException e) {
+			return Triplet.with(null,null,
+					Utils.getResponse( 
+							new BadRequestError(BAD_REQUEST, "Could not decode molecule text", 
+									Arrays.asList("molecule"))));
+		} 
+
+		IAtomContainer molToPredict = null;
+		try {
+			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
+		} catch (IllegalArgumentException e) {
+			return Triplet.with(null,null,Utils.getResponse(
+					new BadRequestError(BAD_REQUEST, e.getMessage(), Arrays.asList("molecule")) ));
+		}
+		
+		// Check again if empty mol - e.g. a valid MOL file but with no atoms
+		if (molToPredict.getAtomCount() == 0) {
+			logger.debug("Empty molecule sent, possibly as MDL");
+			if (failIfMissing)
+				return Triplet.with(null, null, 
+						Utils.getResponse(
+								new BadRequestError(BAD_REQUEST, "missing argument", 
+										Arrays.asList("molecule")) ));
+			else
+				return Triplet.with(null, null, null);
+		}
+
+		// Generate SMILES to have in the response
+		String smiles = null;
+		try {
+			smiles = ChemUtils.getAsSmiles(molToPredict, decodedMolData);
+			logger.debug("prediction-task for smiles=" + smiles);
+		} catch (Exception e) {
+			smiles = "<no SMILES available>";
+			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
+		}
+		
+		// Here everything should be OK
+		return Triplet.with(molToPredict, smiles, null);
 	}
 }
