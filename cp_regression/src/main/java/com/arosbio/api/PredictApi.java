@@ -173,13 +173,13 @@ public class PredictApi {
 							content=@Content(mediaType = Utils.PNG_MEDIA_TYPE)),
 
 					@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(
-							schema = @Schema(implementation = BadRequestError.class))),
+							schema = @Schema(implementation = BadRequestError.class), mediaType = MediaType.APPLICATION_JSON)),
 
 					@ApiResponse(responseCode = "500", description = "Prediction error", content = @Content(
-							schema = @Schema(implementation = ErrorResponse.class))),
+							schema = @Schema(implementation = ErrorResponse.class), mediaType = MediaType.APPLICATION_JSON)),
 
 					@ApiResponse(responseCode = "503", description = "Service not available", content = @Content(
-							schema = @Schema(implementation = ErrorResponse.class))) 
+							schema = @Schema(implementation = ErrorResponse.class), mediaType = MediaType.APPLICATION_JSON)) 
 			}
 			)
 	public Response predictImageGet( 
@@ -234,13 +234,13 @@ public class PredictApi {
 							content=@Content(mediaType = Utils.PNG_MEDIA_TYPE)),
 
 					@ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(
-							schema = @Schema(implementation = BadRequestError.class))),
+							schema = @Schema(implementation = BadRequestError.class), mediaType = MediaType.APPLICATION_JSON)),
 
 					@ApiResponse(responseCode = "500", description = "Prediction error", content = @Content(
-							schema = @Schema(implementation = ErrorResponse.class))),
+							schema = @Schema(implementation = ErrorResponse.class), mediaType = MediaType.APPLICATION_JSON)),
 
 					@ApiResponse(responseCode = "503", description = "Service not available", content = @Content(
-							schema = @Schema(implementation = ErrorResponse.class))) 
+							schema = @Schema(implementation = ErrorResponse.class), mediaType = MediaType.APPLICATION_JSON)) 
 			}
 			)
 	public Response predictImagePost( 
