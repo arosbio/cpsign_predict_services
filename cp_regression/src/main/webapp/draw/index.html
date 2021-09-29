@@ -1,75 +1,106 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, inital-scale=1.0">
 
-<head>
-<script type="text/javascript" language="javascript" src="jsme/jsme.nocache.js"></script>
+        <title>Draw UI | UI for drawing molecules and predicting on the fly</title>
+        <link rel="stylesheet" href="css/draw.css">
+        <link rel="icon" type="image/png" href="imgs/favicon_145x145.png" />
 
-<script>
- //this function will be called after the JavaScriptApplet code has been loaded.
-    function jsmeOnLoad() {
-        jsmeApplet = new JSApplet.JSME("jsme_container", "55.5%", "44%");
-        jsmeApplet.setAfterStructureModifiedCallback(showEvent);
-   	    var image = document.getElementById('image');
-    }
+        <script type="text/javascript" language="javascript" src="jsme/jsme.nocache.js"></script>
+        <script type="text/javascript" language="javascript" src="draw_utils.js"></script>
 
-    function imageNotFound() {
-        document.getElementById('error_label').innerText = "ERROR: Something went wrong with rendering the prediction image. Please try with another molecule or contact a site administrator if the problem persists."
-    }
+        <script>
 
-    function imageFound() {
-        document.getElementById('error_label').innerText = ""
-    }
+            const draw_timeout_ms = 600;
+            const base_url = "http://localhost:8080/api/v2/predictImage?addTitle=true&confidence=";
 
-    function showEvent(event) {
-        redraw()
-    }
+            //this function will be called after the JavaScriptApplet code has been loaded.
+            function jsmeOnLoad() {
+                console.log("starting up the jsmeOnLoad");
+                jsmeApplet = new JSApplet.JSME("jsme-container"); 
+                jsmeApplet.options('newLook');
+                jsmeApplet.setCallBack("AfterStructureModified", on_change);
+            }
+            
+            function on_change(_event) {
+                var smiles = jsmeApplet.smiles();
+                var conf = document.getElementById('confidence').value;
+                window.setTimeout( function (){ check_refresh(smiles,conf)}, draw_timeout_ms );
+            }
 
-    function redraw() {
-        var smiles = jsmeApplet.smiles()
-        var confidence = document.getElementById('confidence').value
-        window.setTimeout( function() { doRedraw(smiles, confidence) }, 900 );
-    }
+            function check_refresh(old_smiles, old_conf){
+                var new_conf = document.getElementById('confidence').value
+                // If updates still being made
+                if ( old_smiles != jsmeApplet.smiles() || old_conf != new_conf ) {
+                    return;
+                }
+                // Draw!
+                do_draw(jsmeApplet, document.getElementById('image'), base_url + new_conf);
+            }
 
-    function doRedraw(smiles, confidence) {
-        if ( smiles != jsmeApplet.smiles() || confidence != document.getElementById('confidence').value) {
-            return;
-        }
-        var imageurl = window.location.href.replace("/draw/", "/api/v2/predictImage?molecule=" + jsmeApplet.smiles() 
-                     + "&imageWidth="  + Math.floor(window.innerWidth*0.9) 
-                     + "&imageHeight=" + Math.floor(window.innerHeight*0.40-45-75)
-                     + "&addTitle=true" 
-                     + "&confidence=" + document.getElementById('confidence').value)
-        var tester = new Image();
-        tester.addEventListener('error', imageNotFound)
-        tester.addEventListener('load', imageFound)
-        tester.src = imageurl;
-	    var image = document.getElementById('image');
-		image.src = imageurl;
-    }
+        </script>
+    </head>
 
-</script>
-</head>
+    <body>
+        <noscript>
+            <div
+                style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+                Your web browser must have JavaScript enabled in order for this
+                application to display correctly.</div>
+        </noscript>
 
-<body>
-	<noscript>
-		<div
-			style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
-			Your web browser must have JavaScript enabled in order for this
-			application to display correctly.</div>
-	</noscript>
 
-    <div style="width: 43%; background-color: white; padding: 4px; font-family: sans-serif; float:right;">
-    <i>Instructions</i>: Draw your molecule in the editor, the prediction underneath will update as you draw. 
-    
-    </div>
- 
-    <div id="jsme_container" style="width=57%; float=left;"></div>
-    
-    Confidence:
-<input id="slider1" type="range" min="0" max="1" step="0.01" value="0.95" 
-       onchange="document.getElementById('confidence').value = document.getElementById('slider1').value; redraw()">
-<input id="confidence" type="text" size="4" value="0.95" disabled>  
+        <header>
+            <img id="uu-logo" src="imgs/UU_logo.svg" alt="Uppsala University logo">
+            <h2>Drawing interface </h2>
+            
+        </header>
 
-    <div id="error_label" style="color:red"></div>
-    <img id="image" style="display: block; margin: auto;"></img>
-</body>
+        <section class="input">
+
+            <div class="container">
+
+                <div class="left-col">
+                    <div class="jsme-container" id="jsme-container"></div>
+                </div>
+                
+                <div class="right-col">
+                    <h3>Instructions</h3>
+                    Draw your molecule in the editor, the prediction underneath will update as you draw. You may click on the blue up/down arrow button (<span id="first"> &#9660;</span><span id="second">&#9650; </span>) and paste an existing MOL, SDF or SMILES. For help regarding the editor, please refer to <a href="https://jsme-editor.github.io/help.html">JSME help page</a>.
+                    <p>
+                    
+                    <div id="conf-pick">
+                        <b>Set desired confidence:</b></br>
+                        <input id="confidence" type="range" min="0" max="1" onload="0.95" onreset="0.95" step="0.01" value="0.95" autocomplete="off" onchange="document.getElementById('conf-out').value = this.value; on_change()">
+                        <output id="conf-out" for="confidence">0.95</output>
+                    </div>
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="output">
+            <img id="image">
+        </section>
+
+
+
+        <footer>
+            <div class="container">
+
+                <div class="pharmbio">
+                    <a href="https://pharmb.io/"><img src="imgs/pharmbio-logo-new.png" alt="Pharmbio logo"></a>
+                </div>
+
+                <div class="jsme-contribution">
+                    Powered by the <a href="https://jsme-editor.github.io/">JSME Molecule Editor</a> 
+                </div>
+
+            </div>
+        </footer>
+    </body>
+
 </html>

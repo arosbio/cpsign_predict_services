@@ -1,0 +1,167 @@
+@charset "UTF-8";
+html  {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+header {
+  text-align: center;
+  padding-bottom: 0%;
+  margin-left: 2em;
+  margin-right: 2em;
+  border-bottom: 2px solid #ccc;
+  margin-bottom: 0;
+  margin-top: 1em;
+}
+
+header #uu-logo {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 4.5em;
+  background-color: white;
+  z-index: 999;
+  -webkit-clip-path: inset(5% 15% 15% 15%);
+  clip-path: inset(5% 15% 15% 15%);
+}
+
+.input {
+  padding-top: 2.5vh;
+  padding-bottom: 2.5vh;
+  padding-left: 2%;
+  padding-right: 2%;
+  height: 40vh;
+}
+
+.input .container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  height: 100%;
+  -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+          justify-content: space-between;
+}
+
+.input .container .left-col {
+  width: 60%;
+  height: 100%;
+}
+
+.input .container .left-col #jsme-container {
+  height: 100%;
+  width: 57vw;
+}
+
+.input .container .right-col {
+  width: 35%;
+  padding: 1em;
+  height: 100%;
+  /* A hack for the up and down-arrows in the text */
+}
+
+.input .container .right-col span {
+  background-color: #ccc;
+  color: blue;
+  font-size: 11px;
+  padding-top: .5em;
+  padding-bottom: .1em;
+  letter-spacing: -.15em;
+}
+
+.input .container .right-col span [id="first"] {
+  padding-left: 40em;
+  padding-right: 0;
+}
+
+.input .container .right-col span [id="second"] {
+  padding-left: 0;
+  padding-right: 40em;
+}
+
+.input .container .right-col a:visited {
+  color: blue;
+}
+
+.input .container .right-col a:hover {
+  font-weight: bold;
+}
+
+#conf-pick {
+  padding-top: 5%;
+}
+
+#conf-pick * {
+  vertical-align: middle;
+}
+
+.output {
+  padding: 0 0 2.5vh 0;
+  margin-left: auto;
+  margin-right: auto;
+  height: 35vh;
+}
+
+.output img {
+  margin: 1% auto 1% auto;
+  display: block;
+  height: 100%;
+  max-width: 50vw;
+  color: red;
+  font-weight: bold;
+  font-size: large;
+}
+
+footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+  margin-top: 5%;
+  padding: .5em;
+  background-color: #CCCCCC;
+  text-align: center;
+  border: none;
+  font-size: small;
+}
+
+footer .container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  place-content: space-between;
+  height: 100%;
+}
+
+footer .container img {
+  height: 1.5em;
+  background-color: white;
+  padding: .15em;
+  border-collapse: separate;
+  border-radius: 5%;
+}
+
+footer .container .jsme-contribution {
+  height: 100%;
+  text-align: center;
+  vertical-align: center;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+footer a {
+  text-decoration: none;
+  color: black;
+}
+
+footer a:hover {
+  font-weight: bold;
+}
+/*# sourceMappingURL=draw.css.map */
