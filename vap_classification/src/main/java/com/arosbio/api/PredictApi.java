@@ -18,6 +18,7 @@ import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
 import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.PredictionResult;
+import com.arosbio.api.model.ServiceRunning;
 import com.arosbio.impl.Predict;
 import com.arosbio.services.utils.Utils;
 
@@ -64,9 +65,10 @@ public class PredictApi  {
 			summary="Get the status of the prediction service",
 			tags = { INFO_TAG },
 			responses = {
-					@ApiResponse(responseCode="200", description="Service is running"),
+					@ApiResponse(responseCode="200", description="Service is running", 
+							content = @Content(schema=@Schema(implementation = ServiceRunning.class))),
 					@ApiResponse(responseCode="503", description="Service down",
-						content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+							content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
 	})
 	public Response health() {
 		try {
