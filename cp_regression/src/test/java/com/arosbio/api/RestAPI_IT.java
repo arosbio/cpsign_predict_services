@@ -1,7 +1,5 @@
 package com.arosbio.api;
 
-//import static io.restassured.RestAssured.basePath;
-//import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.basePath;
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.get;
@@ -100,7 +98,7 @@ public class RestAPI_IT {
 	}
 
 
-	// PREDICITON STUFF
+	// PREDICTION STUFF
 	static String TEST_SMILES = "CCCCCCC=O";
 
 	@Test
@@ -138,7 +136,7 @@ public class RestAPI_IT {
 	public void testPredictPOST_MDL() throws Exception {
 		System.out.println(" =========== Running predictPOST MDL =========== ");
 
-		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/resources/mdl_v2000.txt")), StandardCharsets.UTF_8);
+		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
 
 		Response resp = given().queryParam("confidence",.9).body(mdl).post("/predict");
 		assertValidPredictionJSON(resp, null,0.9);
@@ -183,7 +181,7 @@ public class RestAPI_IT {
 	public void testPredictImagePOST_MDL() throws Exception {
 		System.out.println(" =========== Running predictImagePOST MDL =========== ");
 
-		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/resources/mdl_v2000.txt")), StandardCharsets.UTF_8);
+		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
 
 		Response resp = given().queryParam("confidence",.9).queryParam("title", "true").queryParam("imageWidth",300).body(mdl).post("/predictImage"); //.contentType(ContentType.URLENC)
 		resp.then()

@@ -7,7 +7,7 @@ public class Utils {
 	public static String MODEL_PATH;
 	
 	static {
-		MODEL_PATH = Utils.class.getResource("/resources/test-model.cpsign").getPath();
+		MODEL_PATH = Utils.class.getResource("/test-model.cpsign").getPath();
 	}
 	
 	public static String getPath(String relPath) {

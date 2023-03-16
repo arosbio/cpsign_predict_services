@@ -23,6 +23,7 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
 import com.arosbio.api.model.ErrorResponse;
+import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.PredictionResult;
 import com.arosbio.api.model.ProbabilityMapping;
 import com.arosbio.api.model.ServiceRunning;
@@ -117,7 +118,7 @@ public class Predict {
 			return Utils.getResponse(serverErrorResponse);
 		}
 
-		return Response.ok(model.getModelInfo().clone()).build();
+		return Response.ok(new ModelInfo(model.getModelInfo())).build();
 	}
 
 	public static Response doPredict(String molecule) {

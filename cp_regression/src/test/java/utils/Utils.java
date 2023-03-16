@@ -8,12 +8,10 @@ import org.junit.Assert;
 
 public class Utils {
 
-	public static String VALID_LICENSE_PATH;
 	public static String MODEL_PATH;
 	
 	static {
-		VALID_LICENSE_PATH = Utils.class.getResource("/resources/cpsign.license").getPath();
-		MODEL_PATH = Utils.class.getResource("/resources/test-model.cpsign").getPath();
+		MODEL_PATH = Utils.class.getResource("/test-model.cpsign").getPath();
 	}
 	
 	public static String getPath(String relPath) {
@@ -22,13 +20,12 @@ public class Utils {
 	
 //	@Test
 	public void testLoadMDL() throws Exception {
-		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/resources/mdl_v2000.txt")), StandardCharsets.UTF_8);
+		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
 		System.out.println(mdl);
 	}
 	
-//	@Test
+	// @Test
 	public void testCheckValidURLs() {
-		System.err.println("valid: "+VALID_LICENSE_PATH);
 		System.err.println("model: "+MODEL_PATH);
 	}
 
