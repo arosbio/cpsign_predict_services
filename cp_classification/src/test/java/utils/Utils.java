@@ -4,13 +4,9 @@ import org.junit.Assert;
 
 public class Utils {
 
-	public static String VALID_LICENSE_PATH;
-	public static String EXPIRED_LICENSE_PATH;
 	public static String MODEL_PATH;
 	
 	static {
-		EXPIRED_LICENSE_PATH = Utils.class.getResource("/resources/cpsign-old.license").getPath();
-		VALID_LICENSE_PATH = Utils.class.getResource("/resources/cpsign.license").getPath();
 		MODEL_PATH = Utils.class.getResource("/resources/test-model.cpsign").getPath();
 	}
 	
@@ -20,8 +16,6 @@ public class Utils {
 	
 //	@Test
 	public void testCheckValidURLs() {
-		System.err.println("valid: "+VALID_LICENSE_PATH);
-		System.err.println("exp: "+EXPIRED_LICENSE_PATH);
 		System.err.println("model: "+MODEL_PATH);
 	}
 

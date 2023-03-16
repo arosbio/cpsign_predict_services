@@ -95,7 +95,7 @@ public class RestAPI_IT {
 	}
 
 
-	// PREDICITON STUFF
+	// PREDICTION STUFF
 	static String TEST_SMILES = "CCCCCCC=O";
 
 	@Test

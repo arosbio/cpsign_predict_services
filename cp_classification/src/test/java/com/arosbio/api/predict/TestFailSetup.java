@@ -18,17 +18,7 @@ public class TestFailSetup {
 	public final EnvironmentVariables env = new EnvironmentVariables();
 	
 	@Test
-	public void testNoLicenseOrModel() throws Exception {
-		env.clear(Predict.MODEL_FILE_ENV_VARIABLE);
-		Predict.init();
-		Response resp = Predict.checkHealth();
-		Assert.assertEquals(503, resp.getStatus());
-		Utils.assertContainsIgnoreCase(resp.getEntity().toString(), "license","re-deploy");
-	}
-	
-	@Test
 	public void testNoModel() throws Exception {
-//		env.set(Predict.LICENSE_FILE_ENV_VARIABLE, null);
 		env.clear(Predict.MODEL_FILE_ENV_VARIABLE);
 		Predict.init();
 		Response resp = Predict.checkHealth();

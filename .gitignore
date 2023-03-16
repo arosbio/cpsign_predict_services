@@ -10,3 +10,6 @@ os_templates/.setupserviceaccounts.sh.swp
 **eclipse**
 .vscode/
 **.project
+
+## Test models
+**/test-model*
