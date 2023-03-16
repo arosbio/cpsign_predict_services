@@ -12,13 +12,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
-import org.javatuples.Triplet;
+import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
@@ -27,20 +25,19 @@ import com.arosbio.api.model.ErrorResponse;
 import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.RegressionResult;
 import com.arosbio.api.model.ServiceRunning;
-import com.arosbio.auth.InvalidLicenseException;
-import com.arosbio.chem.io.out.GradientFigureBuilder;
-import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
-import com.arosbio.chem.io.out.fields.ColorGradientField;
-import com.arosbio.chem.io.out.fields.PredictionIntervalField;
-import com.arosbio.chem.io.out.fields.TitleField;
-import com.arosbio.commons.auth.PermissionsCheck;
-import com.arosbio.depict.GradientFactory;
+import com.arosbio.chem.io.out.image.AtomContributionRenderer;
+import com.arosbio.chem.io.out.image.RendererTemplate.RenderInfo;
+import com.arosbio.chem.io.out.image.fields.ColorGradientField;
+import com.arosbio.chem.io.out.image.fields.PredictionIntervalField;
+import com.arosbio.chem.io.out.image.fields.TextField;
+import com.arosbio.chem.io.out.image.layout.Position.Vertical;
+import com.arosbio.cheminf.ChemCPRegressor;
+import com.arosbio.cheminf.SignificantSignature;
+import com.arosbio.cheminf.io.ModelSerializer;
+import com.arosbio.color.gradient.ColorGradient;
+import com.arosbio.color.gradient.GradientFactory;
 import com.arosbio.io.UriUtils;
-import com.arosbio.modeling.CPSignFactory;
-import com.arosbio.modeling.cheminf.SignaturesCPRegression;
-import com.arosbio.modeling.cheminf.SignificantSignature;
-import com.arosbio.modeling.io.ModelLoader;
-import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
+import com.arosbio.ml.cp.CPRegressionPrediction;
 import com.arosbio.services.utils.CDKMutexLock;
 import com.arosbio.services.utils.ChemUtils;
 import com.arosbio.services.utils.Utils;
@@ -48,18 +45,15 @@ import com.google.common.collect.Range;
 
 public class Predict {
 
-	public static final String DEFAULT_LICENSE_PATH = "/opt/app-root/modeldata/license.license";
 	public static final String DEFAULT_MODEL_PATH = "/opt/app-root/modeldata/model.jar";
 	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
-	public static final String LICENSE_FILE_ENV_VARIABLE = "LICENSE_FILE";
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
 	private static ErrorResponse serverErrorResponse = null;
-	private static SignaturesCPRegression model;
-	private static CPSignFactory factory;
+	private static ChemCPRegressor model;
 
 	static {
-		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null?System.getenv(LICENSE_FILE_ENV_VARIABLE):DEFAULT_LICENSE_PATH;
+
 		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null?System.getenv(MODEL_FILE_ENV_VARIABLE):DEFAULT_MODEL_PATH;
 
 		// Get the root logger for cpsign 
@@ -77,20 +71,6 @@ public class Predict {
 			cpLogDLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
 		}
 
-		// Instantiate the factory 
-		try {
-			logger.info("Attempting to load license from: " + license_file);
-			URI license_uri = new File(license_file).toURI();
-			factory = new CPSignFactory( license_uri );
-			logger.info("Initiated the CPSignFactory");
-		} catch (InvalidLicenseException e) {
-			logger.error("Got exception when trying to instantiate CPSignFactory: " + e.getMessage());
-			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Invalid license at server init - service needs to be re-deployed with a valid license");
-		} catch (RuntimeException | IOException re){
-			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
-			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No license found at server init - service needs to be re-deployed with a valid license");
-		}
-		
 		// load the model - only if no error previously encountered
 		if (serverErrorResponse == null) {
 			URI modelURI = null;
@@ -104,20 +84,17 @@ public class Predict {
 				}
 			} catch (Exception e) {
 				logger.error("No model could be loaded", e);
-				serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No model found at server init - service needs to be re-depolyed with a valid model config");
+				serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No model found at server init - service needs to be re-deployed with a valid model config");
 			}
 
 			if (serverErrorResponse == null) {
-
+				// TODO - allow to set encryption key
 				try {
-					if ( factory.supportEncryption() ) {
-						model = (SignaturesCPRegression) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
-					}
-					else {
-						model = (SignaturesCPRegression) ModelLoader.loadModel(modelURI, null);
-					}
+					
+					model = (ChemCPRegressor) ModelSerializer.loadChemPredictor(modelURI, null);
+					
 					logger.info("Loaded model");
-				} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
+				} catch (IOException | InvalidKeyException | IllegalArgumentException e) {
 					logger.error("Could not load the model", e);
 					serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Model could not be loaded at server init ("+e.getMessage()+") - service needs to be re-deployed");
 				}
@@ -126,22 +103,22 @@ public class Predict {
 	}
 
 	public static Response doPredict(String molecule, Double confidence) {
-		logger.debug("got a prediction task, conf=" + confidence);
+		logger.debug("got a prediction task, conf={}", confidence);
 
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
 		
 		if (confidence == null || confidence <0 || confidence>1) {
-			logger.debug("Invalid confidence=" + confidence);
+			logger.debug("Invalid confidence={}", confidence);
 			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "Invalid confidence '"+confidence+"'", Arrays.asList("confidence")) );
 		}
 		
-		Triplet<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, true);
-		if (molValidation.getValue2() != null) {
-			return molValidation.getValue2();
+		Triple<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, true);
+		if (molValidation.getRight() != null) {
+			return molValidation.getRight();
 		}
-		IAtomContainer molToPredict = molValidation.getValue0();
-		String smiles = molValidation.getValue1();
+		IAtomContainer molToPredict = molValidation.getLeft();
+		String smiles = molValidation.getMiddle();
 
 		// Make prediction
 		CDKMutexLock.requireLock();
@@ -150,10 +127,10 @@ public class Predict {
 			if (confidence != null) {
 				res = model.predict(molToPredict, confidence);
 			}
-			logger.debug("Successfully finished predicting smiles="+smiles+", interval=" + res );
-			return Response.ok( new RegressionResult(smiles,res,confidence, model.getModelInfo().getModelName()) ).build();
+			logger.debug("Successfully finished predicting smiles={}, interval={}",smiles,res );
+			return Response.ok( new RegressionResult(smiles,res,confidence, model.getModelInfo().getName()) ).build();
 		} catch (Exception | Error e) {
-			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
+			logger.warn("Failed predicting smiles={}:\n\t{}",smiles, Utils.getStackTrace(e));
 			return Utils.getResponse( new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error - error during prediction") );
 		} finally{
 			CDKMutexLock.releaseLock();
@@ -161,7 +138,7 @@ public class Predict {
 	}
 	
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, Double confidence, boolean addTitle) {
-		logger.debug("Got predictImage request: imageWidth="+imageWidth + ", imageHeight="+imageHeight+", conf="+confidence);
+		logger.debug("Got predictImage request: imageWidth={}, imageHeight={}, conf=",imageWidth,imageHeight,confidence);
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
 
@@ -175,12 +152,12 @@ public class Predict {
 			return r;
 		}
 		
-		Triplet<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, false);
-		if (molValidation.getValue2() != null) {
-			return molValidation.getValue2();
+		Triple<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, false);
+		if (molValidation.getRight() != null) {
+			return molValidation.getRight();
 		}
-		IAtomContainer molToPredict = molValidation.getValue0();
-		String smiles = molValidation.getValue1();
+		IAtomContainer molToPredict = molValidation.getLeft();
+		String smiles = molValidation.getMiddle();
 
 		// Return empty img if no mol sent
 		if (molToPredict == null){
@@ -198,7 +175,7 @@ public class Predict {
 				pred = model.predict(molToPredict, confidence);
 			}
 		} catch (Exception | Error e) {
-			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
+			logger.warn("Failed predicting smiles={}, error:\n{}",smiles, Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during prediction: " + e.getMessage()) );
 		} finally {
 			CDKMutexLock.releaseLock();
@@ -206,31 +183,35 @@ public class Predict {
 			
 		// Create the depiction
 		try {
-			
-			MoleculeGradientDepictor depictor = new MoleculeGradientDepictor(GradientFactory.getDefaultBloomGradient());
-			depictor.setForceRecalculate2DCoords(false);
-			depictor.setImageHeight(imageHeight);
-			depictor.setImageWidth(imageWidth);
-			GradientFigureBuilder builder = new GradientFigureBuilder(depictor);
+			ColorGradient gradient = GradientFactory.getDefaultBloomGradient();
+			AtomContributionRenderer.Builder builder = new AtomContributionRenderer.Builder()
+				.colorScheme(gradient) // Decide which gradient or color scheme to use
+				.height(imageHeight)
+				.width(imageWidth);
 
 			// Add title if specified
 			if (addTitle) {
-				builder.addFieldOverImg(new TitleField(model.getModelInfo().getModelName()));
+				builder.addFieldOverMol(
+					new TextField.Immutable.Builder(model.getModelInfo().getName()).alignment(Vertical.CENTERED).build()
+					);	
 			}
 			// add confidence interval only if given confidence and image size is big enough
 			if (pred != null){
 				try {
 					Range<Double> predInterval = pred.getInterval(confidence).getInterval();
 					if (predInterval != null)
-						builder.addFieldUnderImg(new PredictionIntervalField(predInterval, confidence));
+						builder.addFieldUnderMol(new PredictionIntervalField.Builder(confidence).build());
 				} catch (Exception e) {
-					logger.error("failed adding prediction-interval to image. the prediction = " + pred, e);
+					logger.error("failed adding prediction-interval to image. the prediction = {}\n", pred, e);
 				}
 			}
-			builder.addFieldUnderImg(new ColorGradientField(depictor.getColorGradient()));
 			
-			Map<Integer,Double> grad = signSign.getMoleculeGradient();
-			BufferedImage image = builder.build(molToPredict, (grad!=null? grad : new HashMap<>())).getImage();
+			// Add the gradient
+			builder.addFieldUnderMol(new ColorGradientField.Builder(gradient).build());
+			
+			BufferedImage image = builder.build().render(new RenderInfo.Builder(molToPredict, signSign)
+				.predictionInterval(pred.getInterval(confidence).getInterval(), confidence).build())
+				.getImage();
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", baos);
@@ -238,7 +219,7 @@ public class Predict {
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (Exception | Error e) {
-			logger.warn("Failed creating depiction for SMILES=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
+			logger.warn("Failed creating depiction for SMILES={}, error:\n{}",smiles, Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during image generation: " + e.getMessage()) );
 		} 
 	}
@@ -254,8 +235,6 @@ public class Predict {
 	public static Response checkHealth() {
 		if( serverErrorResponse != null) {
 			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, serverErrorResponse.getMessage()));
-		} else if (! PermissionsCheck.check()) {
-			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, "License has expired" ));
 		} else {
 			return Response.ok(new ServiceRunning()).build();
 		}

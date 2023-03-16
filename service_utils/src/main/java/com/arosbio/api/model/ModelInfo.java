@@ -19,10 +19,10 @@ public class ModelInfo {
 	@JsonProperty()
 	public String category;
 	
-	public ModelInfo(com.arosbio.modeling.io.ModelInfo info) {
-		this.modelName = info.getModelName();
-		this.version = info.getModelVersion().toString();
-		this.category = info.getModelCategory();
+	public ModelInfo(com.arosbio.ml.io.ModelInfo info) {
+		this.modelName = info.getName();
+		this.version = info.getVersion().toString();
+		this.category = info.getCategory();
 		if (category != null && category.isEmpty())
 			category = null; // set to null to remove from json output
 	}

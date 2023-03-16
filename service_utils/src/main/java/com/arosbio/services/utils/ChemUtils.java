@@ -9,7 +9,8 @@ import java.util.Arrays;
 
 import javax.ws.rs.core.Response;
 
-import org.javatuples.Triplet;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -81,25 +82,25 @@ public class ChemUtils {
 		return sg.create(mol);
 	}
 	
-	public static Triplet<IAtomContainer,String,Response> validateMoleculeInput(
+	public static Triple<IAtomContainer,String,Response> validateMoleculeInput(
 			String molecule, boolean failIfMissing){
 		
 		if (molecule==null || molecule.isEmpty()){
 			logger.debug("Missing argument 'molecule'");
 			if (failIfMissing)
-				return Triplet.with(null, null, 
+				return ImmutableTriple.of(null, null, 
 						Utils.getResponse(
 								new BadRequestError(BAD_REQUEST, "missing argument", 
 										Arrays.asList("molecule")) ));
 			else
-				return Triplet.with(null, null, null);
+				return ImmutableTriple.of(null, null, null);
 		}
 
 		String decodedMolData = null;
 		try {
 			decodedMolData = Utils.decodeURL(molecule);
 		} catch (MalformedURLException e) {
-			return Triplet.with(null,null,
+			return ImmutableTriple.of(null,null,
 					Utils.getResponse( 
 							new BadRequestError(BAD_REQUEST, "Could not decode molecule text", 
 									Arrays.asList("molecule"))));
@@ -109,7 +110,7 @@ public class ChemUtils {
 		try {
 			molToPredict = ChemUtils.parseMolOrFail(decodedMolData);
 		} catch (IllegalArgumentException e) {
-			return Triplet.with(null,null,Utils.getResponse(
+			return ImmutableTriple.of(null,null,Utils.getResponse(
 					new BadRequestError(BAD_REQUEST, e.getMessage(), Arrays.asList("molecule")) ));
 		}
 		
@@ -117,25 +118,25 @@ public class ChemUtils {
 		if (molToPredict.getAtomCount() == 0) {
 			logger.debug("Empty molecule sent, possibly as MDL");
 			if (failIfMissing)
-				return Triplet.with(null, null, 
+				return ImmutableTriple.of(null, null, 
 						Utils.getResponse(
 								new BadRequestError(BAD_REQUEST, "missing argument", 
 										Arrays.asList("molecule")) ));
 			else
-				return Triplet.with(null, null, null);
+				return ImmutableTriple.of(null, null, null);
 		}
 
 		// Generate SMILES to have in the response
 		String smiles = null;
 		try {
 			smiles = ChemUtils.getAsSmiles(molToPredict, decodedMolData);
-			logger.debug("prediction-task for smiles=" + smiles);
+			logger.debug("prediction-task for smiles={}", smiles);
 		} catch (Exception e) {
 			smiles = "<no SMILES available>";
 			logger.debug("Failed getting smiles:\n\t"+Utils.getStackTrace(e));
 		}
 		
 		// Here everything should be OK
-		return Triplet.with(molToPredict, smiles, null);
+		return ImmutableTriple.of(molToPredict, smiles, null);
 	}
 }

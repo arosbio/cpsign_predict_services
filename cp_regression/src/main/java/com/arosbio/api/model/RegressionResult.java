@@ -4,8 +4,8 @@ import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
-import com.arosbio.modeling.ml.cp.CPRegressionPrediction;
-import com.arosbio.modeling.ml.cp.CPRegressionPrediction.PredictedInterval;
+import com.arosbio.ml.cp.CPRegressionPrediction;
+import com.arosbio.ml.cp.CPRegressionPrediction.PredictedInterval;
 import com.arosbio.services.utils.Utils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

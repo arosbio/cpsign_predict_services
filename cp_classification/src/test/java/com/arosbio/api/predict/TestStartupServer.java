@@ -17,7 +17,6 @@ public class TestStartupServer {
 
 	@Test
 	public void testStartupPredictService() throws Exception {
-		env.set(Predict.LICENSE_FILE_ENV_VARIABLE, Utils.VALID_LICENSE_PATH);
 		env.set(Predict.MODEL_FILE_ENV_VARIABLE, Utils.MODEL_PATH);
 
 		//		Predict pred = new Predict();
@@ -31,13 +30,4 @@ public class TestStartupServer {
 		System.err.println(respImg.getEntity());
 	}
 
-//	@Test
-//	public void testOldLicense() throws Exception {
-//		env.set(Predict.LICENSE_FILE_ENV_VARIABLE, Utils.EXPIRED_LICENSE_PATH);
-//		
-//		RestAssured.baseURI = "http://localhost:8080/api/v2";
-//
-//		RestAssured.get("/health").then().statusCode(503).body("code", equalTo(503)).body("message", CoreMatchers.startsWith("No license"));
-//		RestAssured.head("/health").then().statusCode(503);
-//	}
 }

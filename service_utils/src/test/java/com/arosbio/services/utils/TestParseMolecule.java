@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
-import org.javatuples.Triplet;
+import org.apache.commons.lang3.tuple.Triple;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -92,16 +92,16 @@ public class TestParseMolecule {
 	public static void validateMol(String empty) {
 		
 		// If failing for missing molecule
-		Triplet<IAtomContainer, String, Response> res = ChemUtils.validateMoleculeInput(empty, true);
-		Assert.assertNull(res.getValue0());
-		Assert.assertNull(res.getValue1());
-		Assert.assertNotNull(res.getValue2());
-		Assert.assertTrue(res.getValue2().getEntity() instanceof BadRequestError);
+		Triple<IAtomContainer, String, Response> res = ChemUtils.validateMoleculeInput(empty, true);
+		Assert.assertNull(res.getLeft());
+		Assert.assertNull(res.getMiddle());
+		Assert.assertNotNull(res.getRight());
+		Assert.assertTrue(res.getRight().getEntity() instanceof BadRequestError);
 		
 		// If not failing
 		res = ChemUtils.validateMoleculeInput(empty, false);
-		Assert.assertNull(res.getValue0());
-		Assert.assertNull(res.getValue1());
-		Assert.assertNull(res.getValue2());
+		Assert.assertNull(res.getLeft());
+		Assert.assertNull(res.getMiddle());
+		Assert.assertNull(res.getRight());
 	}
 }

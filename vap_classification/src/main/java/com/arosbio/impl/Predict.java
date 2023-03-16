@@ -18,48 +18,42 @@ import java.util.Map.Entry;
 import javax.imageio.ImageIO;
 import javax.ws.rs.core.Response;
 
-import org.javatuples.Triplet;
+import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
 
 import com.arosbio.api.model.ErrorResponse;
-import com.arosbio.api.model.ModelInfo;
 import com.arosbio.api.model.PredictionResult;
 import com.arosbio.api.model.ProbabilityMapping;
 import com.arosbio.api.model.ServiceRunning;
-import com.arosbio.auth.InvalidLicenseException;
-import com.arosbio.chem.io.out.GradientFigureBuilder;
-import com.arosbio.chem.io.out.depictors.MoleculeGradientDepictor;
-import com.arosbio.chem.io.out.fields.ColorGradientField;
-import com.arosbio.chem.io.out.fields.ProbabilityField;
-import com.arosbio.chem.io.out.fields.TitleField;
-import com.arosbio.commons.auth.PermissionsCheck;
-import com.arosbio.depict.GradientFactory;
+import com.arosbio.chem.io.out.image.AtomContributionRenderer;
+import com.arosbio.chem.io.out.image.RendererTemplate.RenderInfo;
+import com.arosbio.chem.io.out.image.fields.ColorGradientField;
+import com.arosbio.chem.io.out.image.fields.ProbabilityField;
+import com.arosbio.chem.io.out.image.fields.TextField;
+import com.arosbio.chem.io.out.image.layout.Position.Vertical;
+import com.arosbio.cheminf.ChemVAPClassifier;
+import com.arosbio.cheminf.SignificantSignature;
+import com.arosbio.cheminf.io.ModelSerializer;
+import com.arosbio.color.gradient.ColorGradient;
+import com.arosbio.color.gradient.GradientFactory;
 import com.arosbio.io.UriUtils;
-import com.arosbio.modeling.CPSignFactory;
-import com.arosbio.modeling.cheminf.SignaturesVAPClassification;
-import com.arosbio.modeling.cheminf.SignaturesVAPClassification.SignaturesCVAPResult;
-import com.arosbio.modeling.cheminf.SignificantSignature;
-import com.arosbio.modeling.io.ModelLoader;
+import com.arosbio.ml.vap.avap.CVAPPrediction;
 import com.arosbio.services.utils.CDKMutexLock;
 import com.arosbio.services.utils.ChemUtils;
 import com.arosbio.services.utils.Utils;
 
 public class Predict {
 
-	public static final String DEFAULT_LICENSE_PATH = "/opt/app-root/modeldata/license.license";
 	public static final String DEFAULT_MODEL_PATH = "/opt/app-root/modeldata/model.jar";
 	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
-	public static final String LICENSE_FILE_ENV_VARIABLE = "LICENSE_FILE";
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
 	private static ErrorResponse serverErrorResponse = null;
-	private static SignaturesVAPClassification model;
-	private static CPSignFactory factory;
+	private static ChemVAPClassifier model;
 
 	static {
 
-		final String license_file = System.getenv(LICENSE_FILE_ENV_VARIABLE)!=null ? System.getenv(LICENSE_FILE_ENV_VARIABLE) : DEFAULT_LICENSE_PATH;
 		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null? System.getenv(MODEL_FILE_ENV_VARIABLE) : DEFAULT_MODEL_PATH;
 
 		// Get the root logger for cpsign 
@@ -77,19 +71,6 @@ public class Predict {
 			cpLogDLogger.setLevel(ch.qos.logback.classic.Level.DEBUG);
 		}
 
-		// Instantiate the factory 
-		try {
-			logger.info("Attempting to load license from: " + license_file);
-			URI license_uri = new File(license_file).toURI();
-			factory = new CPSignFactory( license_uri );
-			logger.info("Initiated the CPSignFactory");
-		} catch (InvalidLicenseException e) {
-			logger.error("Got exception when trying to instantiate CPSignFactory: " + e.getMessage());
-			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Invalid license at server init - service needs to be re-deployed with a valid license");
-		} catch (RuntimeException | IOException re){
-			logger.error("Got exception when trying to instantiate CPSignFactory: " + re.getMessage());
-			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No license found at server init - service needs to be re-deployed with a valid license");
-		}
 
 		// load the model - only if no error previously encountered
 		if (serverErrorResponse == null) {
@@ -104,20 +85,17 @@ public class Predict {
 				}
 			} catch (Exception e) {
 				logger.error("No model could be loaded", e);
-				serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No model found at server init - service needs to be re-depolyed with a valid model config");
+				serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No model found at server init - service needs to be re-deployed with a valid model config");
 			}
 
 			if (serverErrorResponse == null) {
 
 				try {
-					if ( factory.supportEncryption() ) {
-						model = (SignaturesVAPClassification) ModelLoader.loadModel(modelURI, factory.getEncryptionSpec());
-					}
-					else {
-						model = (SignaturesVAPClassification) ModelLoader.loadModel(modelURI, null);
-					}
+					// TODO - allow to set encryption key
+					model = (ChemVAPClassifier) ModelSerializer.loadChemPredictor(modelURI, null);
+					
 					logger.info("Loaded model");
-				} catch (IllegalAccessException | IOException | InvalidKeyException | IllegalArgumentException e) {
+				} catch (IOException | InvalidKeyException | IllegalArgumentException e) {
 					logger.error("Could not load the model", e);
 					serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Model could not be loaded at server init ("+e.getMessage()+") - service needs to be re-deployed");
 				}
@@ -128,8 +106,6 @@ public class Predict {
 	public static Response checkHealth() {
 		if( serverErrorResponse != null) {
 			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, serverErrorResponse.getMessage()));
-		} else if (! PermissionsCheck.check()) {
-			return Utils.getResponse(new ErrorResponse(SERVICE_UNAVAILABLE, "License has expired" ));
 		} else {
 			return Response.ok(new ServiceRunning()).build();
 		}
@@ -141,33 +117,33 @@ public class Predict {
 			return Utils.getResponse(serverErrorResponse);
 		}
 
-		return Response.ok(new ModelInfo(model.getModelInfo())).build();
+		return Response.ok(model.getModelInfo().clone()).build();
 	}
 
 	public static Response doPredict(String molecule) {
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
 		
-		Triplet<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, true);
-		if (molValidation.getValue2() != null) {
-			return molValidation.getValue2();
+		Triple<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, true);
+		if (molValidation.getRight() != null) {
+			return molValidation.getRight();
 		}
-		IAtomContainer molToPredict = molValidation.getValue0();
-		String smiles = molValidation.getValue1();
+		IAtomContainer molToPredict = molValidation.getLeft();
+		String smiles = molValidation.getMiddle();
 		
 		CDKMutexLock.requireLock();
 		try {
 
-			SignaturesCVAPResult res = model.predict(molToPredict);
+			CVAPPrediction<String> res = model.predict(molToPredict);
 
-			logger.debug("Successfully finished predicting smiles="+smiles+", probabilites=" + res );
+			logger.debug("Successfully finished predicting smiles={}, probabilities={}",smiles, res );
 
 			List<ProbabilityMapping> pvalues = new ArrayList<>();
-			for (Entry<String, Double> entry : res.getProbabilties().entrySet()) {
+			for (Entry<String, Double> entry : res.getProbabilities().entrySet()) {
 				pvalues.add(new ProbabilityMapping(entry.getKey(), entry.getValue()));
 			}
 
-			return Response.ok( new PredictionResult(pvalues, smiles, model.getModelInfo().getModelName())).build();
+			return Response.ok( new PredictionResult(pvalues, smiles, model.getModelInfo().getName())).build();
 		} catch (Exception e) {
 			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
 			return Utils.getResponse( new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error - error during prediction") );
@@ -177,7 +153,7 @@ public class Predict {
 	}
 
 	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addProbsField, boolean addTitle) {
-		logger.debug("got a predict-image task, imageWidth="+imageWidth+", imageHeight="+imageHeight);
+		logger.debug("got a predict-image task, imageWidth={}, imageHeight={}",+imageWidth,imageHeight);
 
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
@@ -187,12 +163,12 @@ public class Predict {
 			return r;
 		}
 
-		Triplet<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, false);
-		if (molValidation.getValue2() != null) {
-			return molValidation.getValue2();
+		Triple<IAtomContainer,String,Response> molValidation = ChemUtils.validateMoleculeInput(molecule, false);
+		if (molValidation.getRight() != null) {
+			return molValidation.getRight();
 		}
-		IAtomContainer molToPredict = molValidation.getValue0();
-		String smiles = molValidation.getValue1();
+		IAtomContainer molToPredict = molValidation.getLeft();
+		String smiles = molValidation.getMiddle();
 
 		// Return empty img if no mol sent
 		if (molToPredict == null){
@@ -210,7 +186,7 @@ public class Predict {
 				probs = model.predictProbabilities(molToPredict);
 			}
 		} catch (Exception | Error e) {
-			logger.warn("Failed predicting smiles=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
+			logger.warn("Failed predicting smiles={}, error:\n{}", smiles, Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during prediction: " + e.getMessage()) );
 		} finally {
 			CDKMutexLock.releaseLock();
@@ -219,23 +195,25 @@ public class Predict {
 		// Create the depiction
 		try {
 			// Create the depiction
-			MoleculeGradientDepictor depictor = new MoleculeGradientDepictor(GradientFactory.getDefaultBloomGradient());
-			depictor.setForceRecalculate2DCoords(false);
-			depictor.setImageHeight(imageHeight);
-			depictor.setImageWidth(imageWidth);
-			GradientFigureBuilder builder = new GradientFigureBuilder(depictor);
+			ColorGradient gradient = GradientFactory.getDefaultBloomGradient();
+			AtomContributionRenderer.Builder builder = new AtomContributionRenderer.Builder()
+				.colorScheme(gradient) // Decide which gradient or color scheme to use
+				.height(imageHeight)
+				.width(imageWidth);
 
 			// Add title if specified
 			if (addTitle) {
-				builder.addFieldOverImg(new TitleField(model.getModelInfo().getModelName()));
+				builder.addFieldOverMol(
+					new TextField.Immutable.Builder(model.getModelInfo().getName()).alignment(Vertical.CENTERED).build()
+					);	
 			}
 			// Add probabilities if specified
 			if (probs !=null){
-				builder.addFieldUnderImg(new ProbabilityField(probs));
+				builder.addFieldUnderMol(new ProbabilityField.Builder(model.getLabelsSet()).build());
 			}
-			builder.addFieldUnderImg(new ColorGradientField(depictor.getColorGradient()));
+			builder.addFieldUnderMol(new ColorGradientField.Builder(gradient).build());
 
-			BufferedImage image = builder.build(molToPredict, signSign.getMoleculeGradient()).getImage();
+			BufferedImage image = builder.build().render(new RenderInfo.Builder(molToPredict, signSign).probabilities(probs).build()).getImage();
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(image, "png", baos);
@@ -243,7 +221,7 @@ public class Predict {
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (Exception | Error e) {
-			logger.warn("Failed creating depiction for SMILES=" + smiles + ", error:\n"+ Utils.getStackTrace(e));
+			logger.warn("Failed creating depiction for SMILES={}, error:\n{}", smiles, Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during image generation: " + e.getMessage()) );
 		} 
 	}
