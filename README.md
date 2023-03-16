@@ -61,6 +61,7 @@ First the server will check if the environment variable `MODEL_FILE` is set, if 
 The services all has a REST endpoint at `<service-URL>/api/v2/health` that returns HTTP 200 if everything is OK or 503 if something is wrong.
 
 ## TODOs:
+- [ ] Add Dockerfile for how to start a server 
 - [ ] update draw GUI to use [ketcher](https://lifescience.opensource.epam.com/ketcher/index.html) drawer
 - [ ] add config to startup to include/exclude the draw GUI and swagger UI files - to make it possible to have as small services as possible
 - [ ] look over updates on jetty, swagger etc
