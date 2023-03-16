@@ -46,7 +46,7 @@ http://localhost:8080/draw/
 ## Deployment
 Building the services is done using maven, using the parent pom you can simply run the following command from the root of the project which will build a WAR file in each child-projects `/target` directory:
 `
-mvn clean -Dmaven.test.skip=true package
+mvn clean package -DskipTests=true
 `
 
 ### Runtime
