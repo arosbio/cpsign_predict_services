@@ -11,7 +11,7 @@ Currently we bundle the [Swagger UI](https://swagger.io/docs/open-source-tools/s
 ## Testing
 
 ### Requirements
-For all tests to run the services needs a valid model. For each service the tests rely on having a valid model (for the given service type) at location `src/test/resources/resources/test-model.cpsign`. For the `cp_classification` service there's also an alternative test-suite for TCP which requires a TCP-model in the location `src/test/resources/resources/test-model-tcp.cpsign` 
+For all tests to run the services needs a valid model. For each service the tests rely on having a valid model (for the given service type) at location `src/test/resources/test-model.cpsign`. For the `cp_classification` service there's also an alternative test-suite for TCP which requires a TCP-model in the location `src/test/resources/test-model-tcp.cpsign` 
 
 ### Unit-testing utility code
 There is test suite in [service_utils](service_utils/src/test/java/suites/UnitTestSuite.java) that runs tests that are serverless and quick to run.
@@ -23,10 +23,10 @@ The integration tests requires a running service, meaning that they need a model
 To facilitate easy interactive testing, each of the services includes a shell script that sets the environment variables to point to the resources outlined under Requirements and starts up the service.  
 
 ### DIY - testing 
-As you can read in the following sections, the services require both a model and a valid license to work. Testing can then be performed using the maven-jetty-plugin, in the terminal you can thus run:
+As you can read in the following sections, the services require a model to work. Testing can then be performed using the maven-jetty-plugin, in the terminal you can thus run:
 ```
 export MODEL_FILE=<path-to-model>
-mvn clean package jetty:run-war -DskipTests
+mvn clean package jetty:run-war -DskipTests=true
 ```
 
 Currently there are a lot of warnings produced due to duplicate classes encountered when scanning the classpath when starting up the server (due to CPSign bundling all dependencies, so maven cannot resolve conflicts). But once finished you should be able to access the Swagger UI at:
@@ -61,6 +61,9 @@ First the server will check if the environment variable `MODEL_FILE` is set, if 
 The services all has a REST endpoint at `<service-URL>/api/v2/health` that returns HTTP 200 if everything is OK or 503 if something is wrong.
 
 ## TODOs:
+- [ ] update draw GUI to use [ketcher](https://lifescience.opensource.epam.com/ketcher/index.html) drawer
+- [ ] add config to startup to include/exclude the draw GUI and swagger UI files - to make it possible to have as small services as possible
+- [ ] look over updates on jetty, swagger etc
 - [ ] refactor the "draw" thing as a separate folder that is pulled in during maven build
 - [x] CORSFilter update?
 - [x] Remove jackson included both in cpsign and from swagger stuff
