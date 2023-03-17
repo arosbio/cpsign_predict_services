@@ -11,14 +11,14 @@ public class ClassificationResult {
 	
 	@JsonProperty("smiles")
 	@NotNull
-	public String smiles;
+	public final String smiles;
 	
 	@JsonProperty("prediction")
-	public List<PValueMapping> prediction;
+	public final List<PValueMapping> prediction;
 	
 	@JsonProperty("modelName")
 	@NotNull
-	public String modelName;
+	public final String modelName;
 	
 	public ClassificationResult(List<PValueMapping> pvalues, String smiles, String modelName) {
 		this.smiles = smiles;

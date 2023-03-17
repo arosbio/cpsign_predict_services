@@ -17,37 +17,44 @@ public class RegressionResult {
 	
 	@JsonProperty("smiles")
 	@NotNull
-	private String smiles;
+	private final String smiles;
 	
 	@JsonProperty("lower")
-	private Double lower = null;
+	private final Double lower;
 
 	@JsonProperty("upper")
-	private Double upper = null;
+	private final Double upper;
 
 	@JsonProperty("predictionMidpoint")
 	@NotNull
-	private Double predictionMidpoint = null;
+	private final Double predictionMidpoint;
 
 	@JsonProperty("confidence")
-	private Double confidence;
+	private final Double confidence;
 	
 	@JsonProperty("modelName")
 	@NotNull
-	private String modelName = null;;
+	private final String modelName;
 
 	public RegressionResult(String smiles, CPRegressionPrediction res, Double confidence, String modelName) {
 		this.smiles = smiles;
 		this.confidence = confidence;
 		this.modelName = modelName;
 		if (res!=null) {
-			this.predictionMidpoint = res.getY_hat();
+			this.predictionMidpoint = Utils.roundTo3digits(res.getY_hat());
 			// Upper / lower only accessible if confidence was given
 			if (confidence != null) {
 				PredictedInterval interval = res.getInterval(confidence);
-				this.upper = interval.getInterval().upperEndpoint();
-				this.lower = interval.getInterval().lowerEndpoint();
+				this.upper = Utils.roundTo3digits(interval.getInterval().upperEndpoint());
+				this.lower = Utils.roundTo3digits(interval.getInterval().lowerEndpoint());
+			} else {
+				this.lower = null;
+				this.upper = null;
 			}
+		} else {
+			this.predictionMidpoint = null;
+			this.lower = null;
+			this.upper = null;
 		}
 	}
 
