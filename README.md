@@ -8,6 +8,15 @@ This repo contains a Maven Parent pom in the root and three service-implementati
 ### `web_res`
 Currently we bundle the [Swagger UI](https://swagger.io/docs/open-source-tools/swagger-ui/usage/installation/) version 3.52.2 using 'standalone installation' and the JSME app. If updates are needed, now there's a single location to make them. 
 
+## Building
+Building the WAR files are done either from one of the child modules or from the root (parent) module. There are two profiles (`full` and `thin`), where the `full` profile is active by default. The `full` profile bundles in static files for serving the **Swagger UI** and **draw** GUIs into the WAR files and thus make each service slightly larger. The `thin` profile excludes these static components and thus create more lightweight services (difference is around 7MB).
+```
+# Build the full:
+mvn package -DskipTests
+# Build the using the thin profile
+mvn package -DskipTests -P thin
+```
+
 ## Testing
 
 ### Requirements
@@ -63,8 +72,8 @@ The services all has a REST endpoint at `<service-URL>/api/v2/health` that retur
 ## TODOs:
 - [ ] Add Dockerfile for how to start a server 
 - [ ] update draw GUI to use [ketcher](https://lifescience.opensource.epam.com/ketcher/index.html) drawer
-- [ ] add config to startup to include/exclude the draw GUI and swagger UI files - to make it possible to have as small services as possible
-- [ ] look over updates on jetty, swagger etc
+- [x] add config to startup to include/exclude the draw GUI and swagger UI files - to make it possible to have as small services as possible
+- [x] look over updates on jetty, swagger etc
 - [ ] refactor the "draw" thing as a separate folder that is pulled in during maven build
 - [x] CORSFilter update?
 - [x] Remove jackson included both in cpsign and from swagger stuff
