@@ -23,21 +23,56 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>${maven.war.version}</version>
-				<configuration>
-					<webResources>
-						<resource>
-							<directory>${basedir}/../web_res</directory>
-						</resource>
-					</webResources>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+	<profiles>
+		<!-- Default version : include both the /draw and SwaggerUI static files -->
+		<profile>
+			<id>full</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
 
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>${maven.war.version}</version>
+						<configuration>
+							<webResources>
+								<resource>
+									<directory>${basedir}/../web_res</directory>
+								</resource>
+							</webResources>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+
+		</profile>
+
+
+		<!-- Thin version : exclude draw and SwaggerUI static files -->
+		<profile>
+			<id>thin</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>${maven.war.version}</version>
+						<configuration>
+							<packagingExcludes>draw/</packagingExcludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+
+		</profile>
+
+	</profiles>
+	
 </project>

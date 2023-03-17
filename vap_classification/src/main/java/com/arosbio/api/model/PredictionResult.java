@@ -14,7 +14,7 @@ public class PredictionResult   {
 	private final String smiles;
 
 	@JsonProperty("prediction")
-	private List<ProbabilityMapping> prediction;
+	private final List<ProbabilityMapping> prediction;
 	
 	@JsonProperty("modelName")
 	@NotNull
