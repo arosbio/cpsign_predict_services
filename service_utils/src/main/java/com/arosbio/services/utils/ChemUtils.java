@@ -1,13 +1,13 @@
 package com.arosbio.services.utils;
 
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 
 import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;

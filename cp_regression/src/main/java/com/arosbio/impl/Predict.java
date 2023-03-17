@@ -1,8 +1,8 @@
 package com.arosbio.impl;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -14,7 +14,6 @@ import java.security.InvalidKeyException;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
-import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -42,6 +41,8 @@ import com.arosbio.services.utils.CDKMutexLock;
 import com.arosbio.services.utils.ChemUtils;
 import com.arosbio.services.utils.Utils;
 import com.google.common.collect.Range;
+
+import jakarta.ws.rs.core.Response;
 
 public class Predict {
 
@@ -183,6 +184,8 @@ public class Predict {
 			
 		// Create the depiction
 		try {
+			RenderInfo.Builder info = new RenderInfo.Builder(molToPredict, signSign);
+
 			ColorGradient gradient = GradientFactory.getDefaultBloomGradient();
 			AtomContributionRenderer.Builder builder = new AtomContributionRenderer.Builder()
 				.colorScheme(gradient) // Decide which gradient or color scheme to use
@@ -193,14 +196,17 @@ public class Predict {
 			if (addTitleField) {
 				builder.addFieldOverMol(
 					new TextField.Immutable.Builder(model.getModelInfo().getName()).alignment(Vertical.CENTERED).build()
-					);	
+					);
 			}
 			// add confidence interval only if given confidence and image size is big enough
 			if (addPredictionField && pred != null){
 				try {
 					Range<Double> predInterval = pred.getInterval(confidence).getInterval();
-					if (predInterval != null)
+					if (predInterval != null){
 						builder.addFieldUnderMol(new PredictionIntervalField.Builder(confidence).build());
+						info.predictionInterval(predInterval, confidence);
+					}
+						
 				} catch (Exception e) {
 					logger.error("failed adding prediction-interval to image. the prediction = {}\n", pred, e);
 				}
@@ -211,8 +217,8 @@ public class Predict {
 				builder.addFieldUnderMol(new ColorGradientField.Builder(gradient).build());
 			}
 			
-			BufferedImage image = builder.build().render(new RenderInfo.Builder(molToPredict, signSign)
-				.predictionInterval(pred.getInterval(confidence).getInterval(), confidence).build())
+			BufferedImage image = builder.build()
+				.render(info.build())
 				.getImage();
 
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -1,6 +1,6 @@
 package com.arosbio.api.predict;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import org.junit.Rule;
 import org.junit.Test;

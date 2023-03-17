@@ -3,7 +3,7 @@ openAPI:
     version: '2.0.0'
     title: CPSign Venn-ABERS Prediction Service
     description: 'Service that deploys a CPSign Venn-ABERS predictive model and allows for predictions to be made by the deployed model.
-      The service also comes bundled with an interactive drawing interface that can be accessed using <serice-url>/draw where
+      The service also comes bundled with an interactive drawing interface that can be accessed using <service-url>/draw where
       molecules can be drawn and predicted interactively.'
     contact:
       name: Aros Bio

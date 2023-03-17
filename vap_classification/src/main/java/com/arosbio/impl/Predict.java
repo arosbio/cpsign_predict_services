@@ -1,7 +1,7 @@
 package com.arosbio.impl;
 
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
-import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -43,6 +42,8 @@ import com.arosbio.ml.vap.avap.CVAPPrediction;
 import com.arosbio.services.utils.CDKMutexLock;
 import com.arosbio.services.utils.ChemUtils;
 import com.arosbio.services.utils.Utils;
+
+import jakarta.ws.rs.core.Response;
 
 public class Predict {
 

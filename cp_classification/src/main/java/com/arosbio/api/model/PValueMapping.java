@@ -2,9 +2,9 @@ package com.arosbio.api.model;
 
 import java.util.Objects;
 
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
 import com.arosbio.commons.MathUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;

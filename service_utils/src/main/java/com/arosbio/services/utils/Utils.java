@@ -1,8 +1,8 @@
 package com.arosbio.services.utils;
 
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -16,7 +16,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
-import javax.ws.rs.core.Response;
+
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 
@@ -71,7 +73,11 @@ public class Utils {
 	}
 
 	public static Response getResponse(ErrorResponse error) {
-		return Response.status(error.getCode()).entity(error).build();
+		return Response
+			.status(error.getCode())
+			.entity(error)
+			.type(MediaType.APPLICATION_JSON)
+			.build();
 	}
 	
 	public static Response getEmptyImageResponse(int w, int h) {
