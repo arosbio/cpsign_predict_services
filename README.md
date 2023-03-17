@@ -1,6 +1,6 @@
 # README
 
-Prediction service for running cpsign predictive models as REST services.
+Prediction service for running cpsign predictive models as REST services. The models should be generated using the open source package [CPSign](https://github.com/arosbio/cpsign). Currently this server supports models trained from version `2.0.0` of CPSign.
 
 ## This repo
 This repo contains a Maven Parent pom in the root and three service-implementations (`cp_classification`, `cp_regression` and `vap_classification`). To reduce the code duplication a separate java project (`service_utils`) is used for grouping common utility function and models, so that updates can be applied more easily and pushed to all underlying model services. The folder `web_res` in the root is used for common things that should be put in the final WAR folder, which is handled using the [maven WAR plugin <webResources> tag](https://maven.apache.org/plugins/maven-war-plugin/examples/adding-filtering-webresources.html). 
