@@ -192,20 +192,25 @@ public class PredictApi  {
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
-			@Parameter(description = "Write probabilities in the figure")
+			@Parameter(description = "Add the prediction (i.e. predicted probabilities) in the image")
 			@DefaultValue("false") 
-			@QueryParam("addProbability") 
-			boolean addProbs,
-			
-			@Parameter(description = "Add title to the image (using the model name)")
+			@QueryParam("addPrediction") 
+			boolean addPrediction,
+
+			@Parameter(description = "Add legend (i.e. the color gradient used)")
+			@DefaultValue("true")
+			@QueryParam("addLegend")
+			boolean addLegend,
+
+			@Parameter(description = "Add title to the image (the model name)")
 			@DefaultValue("false") 
 			@QueryParam("addTitle") 
 			boolean addTitle,
 
 			@Context SecurityContext securityContext ) {
-		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
+		logger.debug("Initial image-size at API-level: imageHeight={}, imageWidth={}",imageHeight,imageWidth);
 		try {
-			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addProbs, addTitle); 
+			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addPrediction, addTitle, addLegend); 
 		} catch (Exception e) {
 			return convertToErrorResponse(e);
 		}
@@ -252,20 +257,25 @@ public class PredictApi  {
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
-			@Parameter(description = "Write probabilities in the figure")
+			@Parameter(description = "Add the prediction (i.e. predicted probabilities) in the image")
 			@DefaultValue("false") 
-			@QueryParam("addProbability") 
-			boolean addProbs,
-			
+			@QueryParam("addPrediction") 
+			boolean addPrediction,
+
+			@Parameter(description = "Add legend (i.e. the color gradient used)")
+			@DefaultValue("true")
+			@QueryParam("addLegend")
+			boolean addLegend,
+
 			@Parameter(description = "Add title to the image (the model name)")
 			@DefaultValue("false") 
 			@QueryParam("addTitle") 
 			boolean addTitle,
 
 			@Context SecurityContext securityContext ) {
-		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
+		logger.debug("Initial image-size at API-level: imageHeight={}, imageWidth={}",imageHeight,imageWidth);
 		try {
-			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addProbs, addTitle); 
+			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addPrediction, addTitle, addLegend); 
 		} catch (Exception e) {
 			return convertToErrorResponse(e);
 		}

@@ -46,7 +46,7 @@ import com.arosbio.services.utils.Utils;
 
 public class Predict {
 
-	public static final String DEFAULT_MODEL_PATH = "/opt/app-root/modeldata/model.jar";
+	public static final String DEFAULT_MODEL_PATH = Utils.DEFAULT_MODEL_PATH;
 	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
@@ -157,7 +157,7 @@ public class Predict {
 		}
 	}
 
-	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addPvaluesField, boolean addTitle) {
+	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, boolean addPredictionField, boolean addTitleField, boolean addLegendField) {
 		logger.debug("got a predict-image task, imageWidth={}, imageHeight={}",imageWidth,imageHeight);
 
 		if (serverErrorResponse != null)
@@ -187,7 +187,7 @@ public class Predict {
 		CDKMutexLock.requireLock();
 		try {
 			signSign = model.predictSignificantSignature(molToPredict);
-			if (addPvaluesField && imageWidth>80) {
+			if (addPredictionField && imageWidth>80) {
 				pVals = model.predict(molToPredict);
 			}
 		} catch (Exception | Error e) {
@@ -206,18 +206,20 @@ public class Predict {
 				.width(imageWidth);
 
 			// Add title if specified
-			if (addTitle) {
+			if (addTitleField) {
 				builder.addFieldOverMol(
 					new TextField.Immutable.Builder(model.getModelInfo().getName()).alignment(Vertical.CENTERED).build()
 					);	
 			}
 			// Add p-values if specified
-			if (pVals !=null){
+			if (addPredictionField && pVals !=null){
 				builder.addFieldUnderMol(new PValuesField.Builder(model.getLabelsSet()).build());
 			}
-			
+
 			// Add the gradient
-			builder.addFieldUnderMol(new ColorGradientField.Builder(gradient).build());
+			if (addLegendField){
+				builder.addFieldUnderMol(new ColorGradientField.Builder(gradient).build());
+			}
 			
 			BufferedImage image = builder.build().render(new RenderInfo.Builder(molToPredict, signSign)
 				.pValues(pVals).build())

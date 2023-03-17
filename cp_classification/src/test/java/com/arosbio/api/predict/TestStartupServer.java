@@ -25,7 +25,7 @@ public class TestStartupServer {
 		System.err.println(resp.getEntity());
 		System.err.println(resp);
 
-		Response respImg = Predict.doPredictImage(SMILES, 400, 500, true, true);
+		Response respImg = Predict.doPredictImage(SMILES, 400, 500, true, true, true);
 		System.err.println(respImg);
 		System.err.println(respImg.getEntity());
 	}

@@ -183,19 +183,28 @@ public class RestAPI_IT {
 
 		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
 
-		Response resp = given().queryParam("confidence",.9).queryParam("title", "true").queryParam("imageWidth",300).body(mdl).post("/predictImage"); //.contentType(ContentType.URLENC)
+		Response resp = given()
+			.queryParam("confidence",.9)
+			.queryParam("title", "true")
+			.queryParam("imageWidth",300)
+			.body(mdl).post("/predictImage"); 
 		resp.then()
 		.statusCode(200);
 		Assert.assertTrue(resp.getBody().asByteArray().length>100);
 
 		// Test empty MDL files
-		Response respEmpty = given().queryParam("title", "true").queryParam("imageWidth",300).body(EMPTY_v2000).post("/predictImage");
+		Response respEmpty = given()
+			.queryParam("title", "true")
+			.queryParam("imageWidth",300)
+			.body(EMPTY_v2000).post("/predictImage");
 		resp.then()
 		.statusCode(200);
 		Assert.assertTrue(respEmpty.getBody().asByteArray().length>100);
 
 		// Test empty MDL files
-		respEmpty = given().queryParam("title", "true").queryParam("imageWidth",300).body(EMPTY_v3000).post("/predictImage");
+		respEmpty = given().queryParam("title", "true")
+			.queryParam("imageWidth",300)
+			.body(EMPTY_v3000).post("/predictImage");
 		resp.then()
 		.statusCode(200);
 		Assert.assertTrue(respEmpty.getBody().asByteArray().length>100);

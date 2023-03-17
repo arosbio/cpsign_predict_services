@@ -192,10 +192,15 @@ public class PredictApi  {
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
-			@Parameter(description = "Write p-values in image")
+			@Parameter(description = "Add the prediction (i.e. p-values) in the image")
 			@DefaultValue("false") 
-			@QueryParam("addPvals") 
-			boolean addPvals,
+			@QueryParam("addPrediction") 
+			boolean addPrediction,
+
+			@Parameter(description = "Add legend (i.e. the color gradient used)")
+			@DefaultValue("true")
+			@QueryParam("addLegend")
+			boolean addLegend,
 
 			@Parameter(description = "Add title to the image (the model name)")
 			@DefaultValue("false") 
@@ -203,9 +208,9 @@ public class PredictApi  {
 			boolean addTitle,
 
 			@Context SecurityContext securityContext ) {
-		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
+		logger.debug("Initial image-size at API-level: imageHeight={}, imageWidth={}", imageHeight,imageWidth);
 		try {
-			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addPvals, addTitle); 
+			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addPrediction, addTitle, addLegend); 
 		} catch (Exception e) {
 			return convertToErrorResponse(e);
 		}
@@ -251,10 +256,15 @@ public class PredictApi  {
 			@QueryParam("imageHeight") 
 			int imageHeight,
 
-			@Parameter(description = "Write p-values in image")
+			@Parameter(description = "Add the prediction (i.e. p-values) in the image")
 			@DefaultValue("false") 
-			@QueryParam("addPvals") 
-			boolean addPvals,
+			@QueryParam("addPrediction") 
+			boolean addPrediction,
+
+			@Parameter(description = "Add legend (i.e. the color gradient used)")
+			@DefaultValue("true")
+			@QueryParam("addLegend")
+			boolean addLegend,
 
 			@Parameter(description = "Add title to the image (the model name)")
 			@DefaultValue("false") 
@@ -262,9 +272,9 @@ public class PredictApi  {
 			boolean addTitle,
 
 			@Context SecurityContext securityContext ) {
-		logger.debug("Initial image-size at API-level: imageHeight="+imageHeight+", imageWidth="+imageWidth);
+		logger.debug("Initial image-size at API-level: imageHeight={}, imageWidth={}",imageHeight,imageWidth);
 		try {
-			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addPvals, addTitle); 
+			return Predict.doPredictImage(molecule, imageWidth, imageHeight, addPrediction, addTitle, addLegend); 
 		} catch (Exception e) {
 			return convertToErrorResponse(e);
 		}

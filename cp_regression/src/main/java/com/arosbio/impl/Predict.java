@@ -45,7 +45,7 @@ import com.google.common.collect.Range;
 
 public class Predict {
 
-	public static final String DEFAULT_MODEL_PATH = "/opt/app-root/modeldata/model.jar";
+	public static final String DEFAULT_MODEL_PATH = Utils.DEFAULT_MODEL_PATH;
 	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
@@ -127,7 +127,7 @@ public class Predict {
 			if (confidence != null) {
 				res = model.predict(molToPredict, confidence);
 			}
-			logger.debug("Successfully finished predicting smiles={}, interval={}",smiles,res );
+			logger.debug("Successfully finished predicting smiles={}, interval={}", smiles, res);
 			return Response.ok( new RegressionResult(smiles,res,confidence, model.getModelInfo().getName()) ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed predicting smiles={}:\n\t{}",smiles, Utils.getStackTrace(e));
@@ -137,13 +137,13 @@ public class Predict {
 		}
 	}
 	
-	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, Double confidence, boolean addTitle) {
-		logger.debug("Got predictImage request: imageWidth={}, imageHeight={}, conf=",imageWidth,imageHeight,confidence);
+	public static Response doPredictImage(String molecule, int imageWidth, int imageHeight, Double confidence, boolean addTitleField, boolean addPredictionField, boolean addLegendField) {
+		logger.debug("Got predictImage request: imageWidth={}, imageHeight={}, conf={}",imageWidth,imageHeight,confidence);
 		if (serverErrorResponse != null)
 			return Utils.getResponse(serverErrorResponse);
 
 		if (confidence != null && (confidence < 0 || confidence > 1)){
-			logger.warn("invalid argument confidence=" + confidence);
+			logger.warn("invalid argument confidence={}", confidence);
 			return Utils.getResponse(new BadRequestError(BAD_REQUEST, "invalid argument", Arrays.asList("confidence")));
 		}
 		
@@ -171,7 +171,7 @@ public class Predict {
 		CDKMutexLock.requireLock();
 		try {
 			signSign = model.predictSignificantSignature(molToPredict);
-			if (confidence!=null && imageWidth>80) {
+			if (addPredictionField && confidence!=null && imageWidth>80) {
 				pred = model.predict(molToPredict, confidence);
 			}
 		} catch (Exception | Error e) {
@@ -190,13 +190,13 @@ public class Predict {
 				.width(imageWidth);
 
 			// Add title if specified
-			if (addTitle) {
+			if (addTitleField) {
 				builder.addFieldOverMol(
 					new TextField.Immutable.Builder(model.getModelInfo().getName()).alignment(Vertical.CENTERED).build()
 					);	
 			}
 			// add confidence interval only if given confidence and image size is big enough
-			if (pred != null){
+			if (addPredictionField && pred != null){
 				try {
 					Range<Double> predInterval = pred.getInterval(confidence).getInterval();
 					if (predInterval != null)
@@ -207,7 +207,9 @@ public class Predict {
 			}
 			
 			// Add the gradient
-			builder.addFieldUnderMol(new ColorGradientField.Builder(gradient).build());
+			if (addLegendField){
+				builder.addFieldUnderMol(new ColorGradientField.Builder(gradient).build());
+			}
 			
 			BufferedImage image = builder.build().render(new RenderInfo.Builder(molToPredict, signSign)
 				.predictionInterval(pred.getInterval(confidence).getInterval(), confidence).build())

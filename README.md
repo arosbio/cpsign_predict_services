@@ -55,7 +55,7 @@ The services has been tested and developed with Jetty 9.4.32.v20200930 so it wil
 ### Start up
 When starting a prediction service the server will need a model, this can be injected and specified in two different ways:
 
-First the server will check if the environment variable `MODEL_FILE` is set, if it is set it will handle this as URI to a model. Otherwise the server will check in the location `/opt/app-root/modeldata/model.jar`. If there is no model the setup will fail.
+First the server will check if the environment variable `MODEL_FILE` is set, if it is set it will handle this as URI to a model. Otherwise the server will check in the location `/var/lib/jetty/model.jar`. If there is no model the setup will fail.
 
 ### Check service health
 The services all has a REST endpoint at `<service-URL>/api/v2/health` that returns HTTP 200 if everything is OK or 503 if something is wrong.

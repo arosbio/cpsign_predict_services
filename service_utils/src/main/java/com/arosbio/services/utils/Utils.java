@@ -24,10 +24,11 @@ import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
 
 public class Utils {
-	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Utils.class);
+	private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Utils.class);
 	private static final int MAX_NUM_STACK_TO_LOGG = 10;
 	
 	public static final String PNG_MEDIA_TYPE = "image/png";
+	public static final String DEFAULT_MODEL_PATH = "/var/lib/jetty/model.jar";
 	public static final int DEFAULT_IMAGE_WH = 600;
 	public static final int MIN_IMAGE_SIZE = 100;
 	public static final int MAX_IMAGE_SIZE = 5000;
@@ -86,7 +87,7 @@ public class Utils {
 
 			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (IOException e) {
-			logger.info("Failed returning empty image for empty molecule input");
+			LOGGER.info("Failed returning empty image for empty molecule input");
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error"));
 		}
 	}
@@ -102,19 +103,19 @@ public class Utils {
 		boolean validH = isValidSize(h);
 		
 		if (! validW && ! validH) {
-			logger.warn("Failing execution due to invalid image size, WxH: " + w +'x'+h);
+			LOGGER.warn("Failing execution due to invalid image size, WxH: {}x{}", w, h);
 			return getResponse(
 					new BadRequestError(BAD_REQUEST, 
 							String.format("Invalid imageWidth {%d} and imageHeight {%d}, both must be in the range [%d..%d]",
 									w,h,MIN_IMAGE_SIZE,MAX_IMAGE_SIZE), Arrays.asList("imageWidth", "imageHeight")));
 		} else if (! validW) {
-			logger.warn("Failing execution due to invalid image size, WxH: " + w +'x'+h);
+			LOGGER.warn("Failing execution due to invalid image size, WxH: {}x{}", w, h);
 			return getResponse(
 					new BadRequestError(BAD_REQUEST, 
 							String.format("Invalid imageWidth {%d}, value must be in the range [%d..%d]",
 									w,MIN_IMAGE_SIZE,MAX_IMAGE_SIZE), Arrays.asList("imageWidth")));
 		} else if (! validH) {
-			logger.warn("Failing execution due to invalid image size, WxH: " + w +'x'+h);
+			LOGGER.warn("Failing execution due to invalid image size, WxH: {}x{}", w, h);
 			return getResponse(
 					new BadRequestError(BAD_REQUEST, 
 							String.format("Invalid imageHeight {%d}, value must be in the range [%d..%d]",
