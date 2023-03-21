@@ -1,12 +1,11 @@
-**/resources/resources/**
-**/target/
-/bin/
-**.license
-os_templates/.classification_build.yaml.swp
-os_templates/.classification_deploy.yaml.swp
-os_templates/.commands.sh.swp
-os_templates/.setupserviceaccounts.sh.swp
-#IDE settings
+**/resources/**
+# Maven output directory
+target/
+
+# Mac files
+.DS_Store
+
+# IDE settings
 **eclipse**
 .vscode/
 **.project
