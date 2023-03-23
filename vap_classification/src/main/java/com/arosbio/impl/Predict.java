@@ -95,7 +95,7 @@ public class Predict {
 				try {
 					// TODO - allow to set encryption key
 					model = (ChemVAPClassifier) ModelSerializer.loadChemPredictor(modelURI, null);
-					
+					model.getDataset().setMinHAC(0); // to allow generating images for small molecules
 					logger.info("Loaded model");
 				} catch (IOException | InvalidKeyException | IllegalArgumentException e) {
 					logger.error("Could not load the model", e);

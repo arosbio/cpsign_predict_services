@@ -56,7 +56,7 @@ public class ChemUtils {
 						throw new IllegalArgumentException("Invalid query MDL");
 					} 
 				} else {
-					logger.debug("Molecule in non-recognizeable format: " + moleculeData.substring(0, Math.min(100, moleculeData.length())));
+					logger.debug("Molecule in non-recognizable format: {}", moleculeData.substring(0, Math.min(100, moleculeData.length())));
 					throw new IllegalArgumentException("molecule given in unrecognized format");
 				}
 
@@ -65,7 +65,7 @@ public class ChemUtils {
 				try {
 					return parser.parseSmiles(moleculeData);
 				} catch (InvalidSmilesException | IllegalArgumentException e){
-					logger.debug("Got exception when parsing smiles:\n" + Utils.getStackTrace(e));
+					logger.debug("Got exception when parsing smiles:\n{}", Utils.getStackTrace(e));
 					throw new IllegalArgumentException("Invalid query SMILES '" + moleculeData + '\'');
 				}  
 
