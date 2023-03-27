@@ -14,7 +14,8 @@
         <script>
 
             const draw_timeout_ms = 600;
-            const base_url = "http://localhost:8080/api/v2/predictImage?addTitle=true&confidence=";
+            // const origin = window.location.origin
+            const base_url = window.location.origin + "/api/v2/predictImage?addTitle=false&addLegend=true&addPrediction=false&confidence=";
 
             //this function will be called after the JavaScriptApplet code has been loaded.
             function jsmeOnLoad() {
