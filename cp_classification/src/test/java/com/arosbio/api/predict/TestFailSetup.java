@@ -20,7 +20,7 @@ public class TestFailSetup {
 	@Test
 	public void testNoModel() throws Exception {
 		env.clear(Predict.MODEL_FILE_ENV_VARIABLE);
-		Predict.init();
+		Predict.init(); // force the init method to run, using the new env-setting
 		Response resp = Predict.checkHealth();
 		Assert.assertEquals(503, resp.getStatus());
 		Utils.assertContainsIgnoreCase(resp.getEntity().toString(), "model","re-deploy");

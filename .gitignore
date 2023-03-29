@@ -2,6 +2,9 @@
 # Maven output directory
 target/
 
+# Generated WAR files
+**.war
+
 # Mac files
 .DS_Store
 

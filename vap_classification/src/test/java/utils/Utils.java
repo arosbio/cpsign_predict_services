@@ -3,20 +3,9 @@ package utils;
 import org.junit.Assert;
 
 public class Utils {
-
-	public static String MODEL_PATH;
-	
-	static {
-		MODEL_PATH = Utils.class.getResource("/test-model.cpsign").getPath();
-	}
 	
 	public static String getPath(String relPath) {
 		return Utils.class.getResource(relPath).getPath();
-	}
-	
-//	@Test
-	public void testCheckValidURLs() {
-		System.err.println("model: "+MODEL_PATH);
 	}
 
 	public static void assertContainsIgnoreCase(String text, String... texts) {

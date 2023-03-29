@@ -2,17 +2,14 @@ package com.arosbio.services.utils;
 
 import java.util.List;
 
-import jakarta.ws.rs.core.Response;
-
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import com.arosbio.api.model.BadRequestError;
 
-import suites.classes.UnitTest;
+import jakarta.ws.rs.core.Response;
 
-@Category(UnitTest.class)
+
 public class TestUtilsClass {
 
 	@Test

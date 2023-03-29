@@ -1,9 +1,5 @@
 package utils;
 
-import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
-
-import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 
 public class Utils {
@@ -18,11 +14,6 @@ public class Utils {
 		return Utils.class.getResource(relPath).getPath();
 	}
 	
-//	@Test
-	public void testLoadMDL() throws Exception {
-		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
-		System.out.println(mdl);
-	}
 	
 	// @Test
 	public void testCheckValidURLs() {

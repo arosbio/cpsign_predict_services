@@ -21,9 +21,7 @@
 		<target-port>8080</target-port>
 		<cpsign.version>2.0.0-rc1</cpsign.version>
 		<swagger-core-version>2.2.8</swagger-core-version>
-		<!--<jetty-version>9.4.32.v20200930</jetty-version>-->
 		<jetty-version>11.0.14</jetty-version>
-		<!--<jersey2-version>2.32</jersey2-version>-->
 		<jersey-version>3.1.1</jersey-version>
 		<jackson-version>2.14.2</jackson-version>
 		<junit-version>[4.13.1,)</junit-version>
@@ -38,7 +36,7 @@
 		<maven.build.timestamp.format>yyyyMMdd_HHmmss</maven.build.timestamp.format>
 		<mf.impl.vendor>Aros Bio AB</mf.impl.vendor>
         <maven.war.version>3.3.2</maven.war.version>
-        <rest-assured.version>5.3.0</rest-assured.version> <!-- 4.4.0-->
+        <rest-assured.version>5.3.0</rest-assured.version> 
 	</properties>
 
 	<repositories>
@@ -60,13 +58,12 @@
 			<artifactId>rest-assured</artifactId>
 			<version>${rest-assured.version}</version>
 			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-                    <!-- This is already included in CPSign -->
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-lang3</artifactId>
-				</exclusion>
-			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured-all</artifactId>
+			<version>${rest-assured.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jaxb</groupId>
@@ -196,6 +193,7 @@
                 <!-- make it possible to skip unit-tests -->
                 <configuration>
                     <skip>${skipUnitTests}</skip>
+					<argLine>--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</argLine>
                 </configuration>
 
 			</plugin>
@@ -239,6 +237,9 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<argLine>--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

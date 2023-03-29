@@ -20,9 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import com.arosbio.api.model.ServiceRunning;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,10 +32,7 @@ import io.restassured.response.Response;
 import utils.Utils;
 
 public class RestAPI_IT {
-
-	@ClassRule
-	public final static EnvironmentVariables env = new EnvironmentVariables();
-
+	
 	static final String EMPTY_v2000 = "\n" + 
 			"JME 2021-07-13 Wed Sep 22 10:12:45 GMT+200 2021\n" + 
 			"\n" + 
@@ -95,7 +90,7 @@ public class RestAPI_IT {
 	}
 
 
-	// PREDICITON STUFF
+	// PREDICTION STUFF
 	static String TEST_SMILES = "CCCCCCC=O";
 
 	@Test

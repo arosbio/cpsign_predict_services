@@ -5,20 +5,16 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 
-import jakarta.ws.rs.core.Response;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Triple;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
 import com.arosbio.api.model.BadRequestError;
 
-import suites.classes.UnitTest;
+import jakarta.ws.rs.core.Response;
 
-@Category(UnitTest.class)
 public class TestParseMolecule {
 	
 	@Test
