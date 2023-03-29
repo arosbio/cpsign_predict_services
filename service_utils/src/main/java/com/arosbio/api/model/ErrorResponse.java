@@ -56,8 +56,7 @@ public class ErrorResponse {
 		try {
 			return new ObjectMapper().writeValueAsString(this);
 		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			return "Error Reponse code=" + code + ", msg=" + message;
+			return "Error Response code=" + code + ", msg=" + message;
 		}
 	}
 

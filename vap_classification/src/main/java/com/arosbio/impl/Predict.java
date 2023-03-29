@@ -6,7 +6,6 @@ import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.security.InvalidKeyException;
@@ -79,7 +78,7 @@ public class Predict {
 			URI modelURI = null;
 			try {
 				logger.debug("Trying to load in the model");
-				modelURI = new File(model_file).toURI();
+				modelURI = UriUtils.getURI(model_file);
 				if (modelURI == null)
 					throw new IOException("did not locate the model file");
 				if (!UriUtils.canReadFromURI(modelURI)) {
