@@ -14,9 +14,9 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.exception.InvalidSmilesException;
 import org.openscience.cdk.interfaces.IAtomContainer;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.io.MDLV3000Reader;
-import org.openscience.cdk.silent.AtomContainer;
 import org.openscience.cdk.silent.SilentChemObjectBuilder;
 import org.openscience.cdk.smiles.SmiFlavor;
 import org.openscience.cdk.smiles.SmilesGenerator;
@@ -29,8 +29,10 @@ public class ChemUtils {
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(ChemUtils.class);
 	private static SmilesGenerator sg = new SmilesGenerator(SmiFlavor.Canonical);
-	private static final SmilesParser parser = new SmilesParser(SilentChemObjectBuilder.getInstance());
-
+	private static IChemObjectBuilder builder = SilentChemObjectBuilder.getInstance();
+	private static final SmilesParser parser = new SmilesParser(builder);
+	
+	
 	public static IAtomContainer parseMolOrFail(String moleculeData) 
 			throws IllegalArgumentException {
 
@@ -42,7 +44,7 @@ public class ChemUtils {
 				if (moleculeData.contains("V2000")) {
 					logger.debug("molecule data given in MDL v2000 format");
 					try (MDLV2000Reader reader = new MDLV2000Reader(new ByteArrayInputStream(moleculeData.getBytes()));){
-						return reader.read(new AtomContainer());
+						return reader.read(builder.newAtomContainer());
 					} catch (Exception | Error e) {
 						logger.debug("Failed to read molecule as MDL v2000");
 						throw new IllegalArgumentException("Invalid query MDL");
@@ -50,7 +52,7 @@ public class ChemUtils {
 				} else if (moleculeData.contains("V3000")) {
 					logger.debug("molecule data given in MDL v3000 format");
 					try (MDLV3000Reader reader = new MDLV3000Reader(new ByteArrayInputStream(moleculeData.getBytes()));){
-						return reader.read(new AtomContainer());
+						return reader.read(builder.newAtomContainer());
 					} catch (Exception | Error e) {
 						logger.debug("Failed to read molecule as MDL 3000");
 						throw new IllegalArgumentException("Invalid query MDL");
