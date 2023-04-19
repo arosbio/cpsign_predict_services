@@ -24,10 +24,11 @@ We have supplied an example of how a Docker container can be set up for deployin
 The services has been tested and developed with Jetty 11.0.14 so it will likely be easiest to get things up and running with this server.
 
 #### Start up
-When starting a prediction service the server will need the prediction model that should be used, this can be injected and specified in two different ways and handled (in order):
+When starting a prediction service the server will need the prediction model that should be used, this can be injected and specified in three different ways and handled (in order):
 
-1. The code will check if the environment variable `MODEL_FILE` is set, if it is set it will handle this as URI to a model. If the content of `MODEL_FILE` either is not pointing to a model, or if the model is non-compatible in any way, the setup will fail.
-2. Otherwise the server will check in the location `/var/lib/jetty/model.jar`. If there is no model the setup will fail.
+1. Firstly, the code will check if the environment variable `MODEL_FILE` is set, if it is set it will handle this as a URI to a model. If the content of `MODEL_FILE` either is not pointing to a model, or if the model is non-compatible in any way, the setup will fail.
+2. Secondly, the code with check if a JVM property `MODEL_FILE` is set and try to load this as URI pointing to a model. Setup will fail in case the URI is invalid or points to an invalid file/model.
+3. As a final step, the server will check in the location `/var/lib/jetty/model.jar`. If there is no model the setup will fail.
 
 In case the setup fails, the web server will still be running but all calls to the REST endpoints should return HTTP 503 error code.
 
@@ -40,7 +41,7 @@ For all tests to run the services each need a valid model. For each service the 
 There are a few unit-tests, i.e. tests that do not rely on having a web server running. These are executed by running `mvn test` from the root directory. 
 
 ### Integration tests 
-The integration tests requires a running REST service. These tests are run using `mvn verify` but in order for this to work, the environment variable `MODEL_FILE` must be set (and pointing to the correct model for each service type). Thus, these tests **do not work** by running `mvn verify` from the maven parent - instead each service type must be tested one-by-one. To make this simpler there's a `run_IT_tests.sh` script within each service module that sets these variables and runs the integration tests (i.e. pointing to the `src/test/resources/test-model.cpsign` model within each child module, then runs `mvn verify`). 
+The integration tests requires a running REST service. These tests are run using `mvn verify` but in order for this to work, the environment variable `MODEL_FILE` must be set (and pointing to the correct model for each service type). Thus, these tests **do not work** by running `mvn verify` from the maven parent - instead each service type must be tested one-by-one. To make this simpler there's a `run_IT_tests.sh` script within each service module that sets these variables and runs the integration tests (i.e. pointing to the `src/test/resources/test-model.cpsign` model within each child module, then runs `mvn verify`). There is also a 'master script' in the root directory that calls each service test-script so all integration tests can be run from a single script.
 
 ### User-interactive testing
 To facilitate easy interactive testing, each of the services includes a shell script (`start_test_server.sh`) that sets the environment variable to point to the test-model (see [Requirements](#requirements)) and spins up a jetty server for the user to try it out.
