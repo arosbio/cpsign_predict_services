@@ -29,7 +29,7 @@ import com.github.cliftonlabs.json_simple.JsonException;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
-import utils.Utils;
+import utils.Utilities;
 
 public class RestAPI_IT {
 	
@@ -114,7 +114,7 @@ public class RestAPI_IT {
 	public void testPredictPOST_MDL() throws Exception {
 		System.out.println(" =========== Running predictPOST MDL =========== ");
 
-		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
+		String mdl = IOUtils.toString(new FileInputStream(Utilities.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
 
 		Response resp = given().body(mdl).post("/predict");
 		resp.then()
@@ -171,7 +171,7 @@ public class RestAPI_IT {
 	public void testPredictImagePOST_MDL() throws Exception {
 		System.out.println(" =========== Running predictImagePOST MDL =========== ");
 
-		String mdl = IOUtils.toString(new FileInputStream(Utils.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
+		String mdl = IOUtils.toString(new FileInputStream(Utilities.getPath("/mdl_v2000.txt")), StandardCharsets.UTF_8);
 
 		Response resp = given().queryParam("title", "true").queryParam("imageWidth",300).body(mdl).post("/predictImage");
 		resp.then()

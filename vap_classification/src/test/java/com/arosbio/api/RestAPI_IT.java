@@ -1,7 +1,5 @@
 package com.arosbio.api;
 
-//import static io.restassured.RestAssured.basePath;
-//import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.basePath;
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.get;

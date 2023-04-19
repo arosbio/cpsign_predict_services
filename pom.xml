@@ -77,19 +77,6 @@
 			<version>${junit-version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.github.stefanbirkner</groupId>
-			<artifactId>system-rules</artifactId>
-			<version>1.19.0</version>
-			<scope>test</scope>
-			<!-- junit:junit-dep is deprecated, and junit:junit replaces it. -->
-			<exclusions>
-				<exclusion>
-				  <groupId>junit</groupId>
-				  <artifactId>junit-dep</artifactId>
-				</exclusion>
-			  </exclusions>
-		</dependency>
 
 		<!-- CPSIGN -->
 
@@ -193,7 +180,7 @@
                 <!-- make it possible to skip unit-tests -->
                 <configuration>
                     <skip>${skipUnitTests}</skip>
-					<argLine>--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+					
                 </configuration>
 
 			</plugin>
@@ -237,9 +224,7 @@
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<argLine>--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED</argLine>
-				</configuration>
+				
 			</plugin>
 		</plugins>
 	</build>

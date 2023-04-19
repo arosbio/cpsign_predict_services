@@ -2,21 +2,16 @@ package utils;
 
 import org.junit.Assert;
 
-public class Utils {
+public class Utilities {
 
 	public static String MODEL_PATH;
 	
 	static {
-		MODEL_PATH = Utils.class.getResource("/test-model.cpsign").getPath();
+		MODEL_PATH = Utilities.class.getResource("/test-model.cpsign").getPath();
 	}
 	
 	public static String getPath(String relPath) {
-		return Utils.class.getResource(relPath).getPath();
-	}
-	
-//	@Test
-	public void testCheckValidURLs() {
-		System.err.println("model: "+MODEL_PATH);
+		return Utilities.class.getResource(relPath).getPath();
 	}
 
 	public static void assertContainsIgnoreCase(String text, String... texts) {
