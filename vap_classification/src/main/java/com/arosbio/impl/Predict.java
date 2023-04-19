@@ -5,7 +5,6 @@ import static jakarta.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.security.InvalidKeyException;
@@ -13,8 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.imageio.ImageIO;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.interfaces.IAtomContainer;
@@ -47,15 +44,23 @@ import jakarta.ws.rs.core.Response;
 public class Predict {
 
 	public static final String DEFAULT_MODEL_PATH = Utils.DEFAULT_MODEL_PATH;
-	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
+	public static final String MODEL_FILE_ENV_VARIABLE = Utils.MODEL_FILE_ENV_VARIABLE;
 
 	private static Logger logger = org.slf4j.LoggerFactory.getLogger(Predict.class);
 	private static ErrorResponse serverErrorResponse = null;
 	private static ChemVAPClassifier model;
 
 	static {
+		init();
+	}
 
-		final String model_file = System.getenv(MODEL_FILE_ENV_VARIABLE)!=null? System.getenv(MODEL_FILE_ENV_VARIABLE) : DEFAULT_MODEL_PATH;
+	public static void init() {
+		
+		// Reset server state
+		serverErrorResponse = null;
+		model = null;
+
+		final String model_file = Utils.getModelURL();
 
 		// Get the root logger for cpsign 
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
@@ -146,7 +151,7 @@ public class Predict {
 
 			return Response.ok( new PredictionResult(pvalues, smiles, model.getModelInfo().getName())).build();
 		} catch (Exception e) {
-			logger.warn("Failed predicting smiles=" + smiles +":\n\t" + Utils.getStackTrace(e));
+			logger.warn("Failed predicting smiles={}\n{}", smiles, Utils.getStackTrace(e));
 			return Utils.getResponse( new ErrorResponse(INTERNAL_SERVER_ERROR, "Server error - error during prediction") );
 		} finally {
 			CDKMutexLock.releaseLock();
@@ -216,13 +221,12 @@ public class Predict {
 				builder.addFieldUnderMol(new ColorGradientField.Builder(gradient).build());
 			}
 
-			BufferedImage image = builder.build().render(new RenderInfo.Builder(molToPredict, signSign).probabilities(probs).build()).getImage();
+			BufferedImage image = builder.build()
+				.render(new RenderInfo.Builder(molToPredict, signSign).probabilities(probs).build())
+				.getImage();
 
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ImageIO.write(image, "png", baos);
-			byte[] imageData = baos.toByteArray();
+			return Response.ok( new ByteArrayInputStream(Utils.convertToByteArray(image)) ).build();
 
-			return Response.ok( new ByteArrayInputStream(imageData) ).build();
 		} catch (Exception | Error e) {
 			logger.warn("Failed creating depiction for SMILES={}, error:\n{}", smiles, Utils.getStackTrace(e));
 			return Utils.getResponse(new ErrorResponse(INTERNAL_SERVER_ERROR, "Error during image generation: " + e.getMessage()) );

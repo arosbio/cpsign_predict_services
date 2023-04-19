@@ -17,23 +17,50 @@ import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-
 import org.slf4j.Logger;
 
 import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
+
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 public class Utils {
 	private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(Utils.class);
 	private static final int MAX_NUM_STACK_TO_LOGG = 10;
 	
 	public static final String PNG_MEDIA_TYPE = "image/png";
+	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
 	public static final String DEFAULT_MODEL_PATH = "/var/lib/jetty/model.jar";
 	public static final int DEFAULT_IMAGE_WH = 600;
 	public static final int MIN_IMAGE_SIZE = 100;
 	public static final int MAX_IMAGE_SIZE = 5000;
+
+	public static String getModelURL(){
+		// First take environment variable if set 
+		String envProp = System.getenv(MODEL_FILE_ENV_VARIABLE);
+		if (envProp!=null && !envProp.isBlank()){
+			return envProp;
+		}
+			
+		// If not set - check system property (i.e. argument given to the JVM)
+		String jvmProp = System.getProperty(MODEL_FILE_ENV_VARIABLE);
+		if (jvmProp!=null && !jvmProp.isBlank()){
+			return jvmProp;
+		}
+		
+		// Use the default path as backup
+		return DEFAULT_MODEL_PATH;
+	}
+
+	public static byte[] convertToByteArray(BufferedImage image) throws IOException {
+		try(
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			){
+			ImageIO.write(image, "png", baos);
+			return baos.toByteArray();
+		}
+	}
 
 	public static String getStackTrace(Throwable e) {
 		StringBuilder sb = new StringBuilder();
