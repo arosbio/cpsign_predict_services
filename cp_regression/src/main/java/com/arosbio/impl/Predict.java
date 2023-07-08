@@ -11,6 +11,8 @@ import java.net.URI;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
+import javax.security.auth.Destroyable;
+
 import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ import com.arosbio.cheminf.SignificantSignature;
 import com.arosbio.cheminf.io.ModelSerializer;
 import com.arosbio.color.gradient.ColorGradient;
 import com.arosbio.color.gradient.GradientFactory;
+import com.arosbio.encryption.EncryptionSpecification;
 import com.arosbio.io.UriUtils;
 import com.arosbio.ml.cp.CPRegressionPrediction;
 import com.arosbio.services.utils.CDKMutexLock;
@@ -60,6 +63,7 @@ public class Predict {
 		model = null;
 
 		final String model_file = Utils.getModelURL();
+		final EncryptionSpecification specificationOrNull = Utils.getEncryptionKeyOrNull();
 
 		// Get the root logger for cpsign 
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
@@ -93,16 +97,23 @@ public class Predict {
 			}
 
 			if (serverErrorResponse == null) {
-				// TODO - allow to set encryption key
 				try {
-					
-					model = (ChemCPRegressor) ModelSerializer.loadChemPredictor(modelURI, null);
+					model = (ChemCPRegressor) ModelSerializer.loadChemPredictor(modelURI, specificationOrNull);
 					model.getDataset().setMinHAC(0); // to allow generating images for small molecules
 					logger.info("Loaded model");
 				} catch (IOException | InvalidKeyException | IllegalArgumentException e) {
 					logger.error("Could not load the model", e);
 					serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Model could not be loaded at server init ("+e.getMessage()+") - service needs to be re-deployed");
 				}
+			}
+		}
+		
+		// Clean up potential encryption key
+		if (specificationOrNull != null && (specificationOrNull instanceof Destroyable)){
+			try{
+				((Destroyable)specificationOrNull).destroy();
+			} catch (Exception e){
+				logger.debug("Failed destroying encryption spec");
 			}
 		}
 	}

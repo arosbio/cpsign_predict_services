@@ -162,6 +162,31 @@
 
 	</dependencies>
 
+	<profiles>
+		<profile>
+			<id>encrypt</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>com.arosbio</groupId>
+					<artifactId>encryption-impl</artifactId>
+					<version>1.0.0</version>
+				</dependency>
+			</dependencies>
+
+			<repositories>
+				<repository>
+					<id>project.local</id>
+					<name>project</name>
+					<url>file:${project.basedir}/test_encryption/local_mvn_repo</url>
+				</repository>
+			</repositories>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
 			<plugin>

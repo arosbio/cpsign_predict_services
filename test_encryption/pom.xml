@@ -1,0 +1,86 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.arosbio.services</groupId>
+	<artifactId>test-encrypted-models</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+
+	<!-- Common properties -->
+	<properties>
+		<cpsign.version>2.0.0-rc1</cpsign.version>
+		<logback-version>1.1.7</logback-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<application.vendor>Aros Bio AB</application.vendor>
+		<maven.build.timestamp.format>yyyyMMdd_HHmmss</maven.build.timestamp.format>
+		<mf.impl.vendor>Aros Bio AB</mf.impl.vendor>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>project.local</id>
+			<name>project</name>
+			<url>file:${project.basedir}/local_mvn_repo</url>
+    	</repository>
+		<repository>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+			<layout>default</layout>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<dependencies>
+
+		<!-- CPSIGN -->
+
+		<dependency>
+			<groupId>com.arosbio</groupId>
+			<artifactId>cpsign-api</artifactId>
+			<version>${cpsign.version}</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.arosbio</groupId>
+			<artifactId>encryption-impl</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+	
+
+		<!-- TEST DEPENDENCIES -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>[4.13.1,)</version>
+            <scope>test</scope>
+        </dependency>
+
+	</dependencies>
+
+    <build>
+    </build>
+
+</project>

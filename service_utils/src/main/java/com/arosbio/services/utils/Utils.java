@@ -10,10 +10,16 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.util.Arrays;
+import java.util.Base64;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 
 import javax.imageio.ImageIO;
 
@@ -21,6 +27,8 @@ import org.slf4j.Logger;
 
 import com.arosbio.api.model.BadRequestError;
 import com.arosbio.api.model.ErrorResponse;
+import com.arosbio.encryption.EncryptionSpecification;
+import com.arosbio.io.UriUtils;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -31,10 +39,94 @@ public class Utils {
 	
 	public static final String PNG_MEDIA_TYPE = "image/png";
 	public static final String MODEL_FILE_ENV_VARIABLE = "MODEL_FILE";
+	public static final String ENCRYPTION_KEY_ENV_VARIABLE = "ENCRYPTION_KEY";
+	public static final String ENCRYPTION_KEY_FILE_ENV_VARIABLE = "ENCRYPTION_KEY_FILE";
 	public static final String DEFAULT_MODEL_PATH = "/var/lib/jetty/model.jar";
 	public static final int DEFAULT_IMAGE_WH = 600;
 	public static final int MIN_IMAGE_SIZE = 100;
 	public static final int MAX_IMAGE_SIZE = 5000;
+
+	public static EncryptionSpecification getEncryptionKeyOrNull() throws IllegalArgumentException {
+		ServiceLoader<EncryptionSpecification> loader = ServiceLoader.load(EncryptionSpecification.class);
+		Iterator<EncryptionSpecification> serviceIterator = loader.iterator();
+
+		EncryptionSpecification spec = null;
+		if (!serviceIterator.hasNext()){
+			LOGGER.debug("No encryption specification implementation available on classpath");
+			return null;
+		}
+
+		// We had at least one specification - pick the first one
+		spec = serviceIterator.next();
+		LOGGER.debug("Loaded encryption spec implementation of type: {}", spec.getName());
+
+		// Check if key given directly
+		String keyOrNull = getProperty(ENCRYPTION_KEY_ENV_VARIABLE);
+		if (keyOrNull != null){
+			LOGGER.debug("Key given in plain text");
+			try {
+				spec.init(Base64.getDecoder().decode(keyOrNull));
+				return spec;
+			} catch (Exception e){
+				LOGGER.debug("Failed setting up encryption specification",e);
+				throw new IllegalArgumentException("Could not initialize encryption specification from the given key: " + e.getMessage());
+			}
+		}
+
+
+		// no key given directly - check if given as file
+		LOGGER.debug("No key given as plain text, try as a file");
+		String keyFileOrNull = getProperty(ENCRYPTION_KEY_FILE_ENV_VARIABLE);
+		if (keyFileOrNull != null){
+			// Convert it to a URI
+			URI keyURI = null;
+			try {
+				keyURI = UriUtils.getURI(keyFileOrNull);
+				LOGGER.debug("Loading encryption key from input: {}\nconverted to URI: {}", keyFileOrNull,keyURI);
+			} catch (Exception e){
+				LOGGER.debug("Failed getting a URI from input: {}",keyFileOrNull);
+				throw new IllegalArgumentException("Invalid encryption key file: " + keyFileOrNull);
+			}
+			
+			// Read the bytes and init encryption spec
+			byte[] key = null;
+			try (
+				InputStream stream = UriUtils.getInputStream(keyURI);
+			){
+				key = stream.readAllBytes();
+				spec.init(key);
+				return spec;
+			} catch (IOException e){
+				LOGGER.debug("Failed reading bytes from encryption file", e);
+				throw new IllegalArgumentException("Failed reading encryption key from file");
+			} catch (InvalidKeyException e) {
+				LOGGER.debug("Failed setting up encryption spec with the given key", e);
+				throw new IllegalArgumentException("Failed configuring encryption key: " + e.getMessage());
+			} finally {
+				if (key != null){
+					Arrays.fill(key, (byte)0);
+				}
+			}
+			
+		}
+
+
+		return null;
+	}
+
+	private static String getProperty(final String name){
+		// First take environment variable if set 
+		String envProp = System.getenv(name);
+		if (envProp!=null && !envProp.isBlank()){
+			return envProp;
+		}
+		// If not set - check system property (i.e. argument given to the JVM)
+		String jvmProp = System.getProperty(name);
+		if (jvmProp!=null && !jvmProp.isBlank()){
+			return jvmProp;
+		}
+		return null;
+	}
 
 	public static String getModelURL(){
 		// First take environment variable if set 

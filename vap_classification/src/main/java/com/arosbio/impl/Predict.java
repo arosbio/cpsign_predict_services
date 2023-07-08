@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.security.auth.Destroyable;
+
 import org.apache.commons.lang3.tuple.Triple;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.slf4j.Logger;
@@ -33,6 +35,7 @@ import com.arosbio.cheminf.SignificantSignature;
 import com.arosbio.cheminf.io.ModelSerializer;
 import com.arosbio.color.gradient.ColorGradient;
 import com.arosbio.color.gradient.GradientFactory;
+import com.arosbio.encryption.EncryptionSpecification;
 import com.arosbio.io.UriUtils;
 import com.arosbio.ml.vap.avap.CVAPPrediction;
 import com.arosbio.services.utils.CDKMutexLock;
@@ -61,6 +64,13 @@ public class Predict {
 		model = null;
 
 		final String model_file = Utils.getModelURL();
+		EncryptionSpecification specificationOrNull = null; 
+		try{
+			specificationOrNull = Utils.getEncryptionKeyOrNull();
+		} catch (IllegalArgumentException e){
+			logger.debug("tried to deploy encryted model but could not load encryption key correctly");
+			serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "No model could be loaded at server init - failed loading encryption key");
+		}
 
 		// Get the root logger for cpsign 
 		Logger cpsingLogger =  org.slf4j.LoggerFactory.getLogger("com.arosbio");
@@ -95,16 +105,23 @@ public class Predict {
 			}
 
 			if (serverErrorResponse == null) {
-
 				try {
-					// TODO - allow to set encryption key
-					model = (ChemVAPClassifier) ModelSerializer.loadChemPredictor(modelURI, null);
+					model = (ChemVAPClassifier) ModelSerializer.loadChemPredictor(modelURI, specificationOrNull);
 					model.getDataset().setMinHAC(0); // to allow generating images for small molecules
 					logger.info("Loaded model");
 				} catch (IOException | InvalidKeyException | IllegalArgumentException e) {
 					logger.error("Could not load the model", e);
 					serverErrorResponse = new ErrorResponse(SERVICE_UNAVAILABLE, "Model could not be loaded at server init ("+e.getMessage()+") - service needs to be re-deployed");
 				}
+			}
+		}
+
+		// Clean up potential encryption key
+		if (specificationOrNull != null && (specificationOrNull instanceof Destroyable)){
+			try{
+				((Destroyable)specificationOrNull).destroy();
+			} catch (Exception e){
+				logger.debug("Failed destroying encryption spec");
 			}
 		}
 	}
