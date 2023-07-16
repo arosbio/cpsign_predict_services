@@ -99,7 +99,7 @@ public class Predict {
 			if (serverErrorResponse == null) {
 				try {
 					model = (ChemCPRegressor) ModelSerializer.loadChemPredictor(modelURI, specificationOrNull);
-					model.getDataset().setMinHAC(0); // to allow generating images for small molecules
+					model.getDataset().withFilters(); // no filters - allow generating images for small molecules
 					logger.info("Loaded model");
 				} catch (IOException | InvalidKeyException | IllegalArgumentException e) {
 					logger.error("Could not load the model", e);
