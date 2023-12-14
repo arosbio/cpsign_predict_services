@@ -1,7 +1,7 @@
-FROM jetty:11.0.14-jre17
+FROM ghcr.io/arosbio/predictservice:latest
 
-# Copy the service application
-COPY ROOT.war /var/lib/jetty/webapps/ROOT.war
 
 # Copy the model to the default location
-COPY test-model.cpsign /var/lib/jetty/model.jar
+COPY YOUR-MODEL.cpsign /var/lib/jetty/model.jar
+# tell the service where to find the model
+ENV MODEL_FILE=/var/lib/jetty/model.jar
