@@ -14,6 +14,10 @@
 	<packaging>war</packaging>
 	<name>CPSign.Predict.Classification</name>
 
+	<properties>
+		<finalName>${project.artifactId}-${project.version}</finalName>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.arosbio.services</groupId>
@@ -42,6 +46,7 @@
 									<directory>${basedir}/../web_res</directory>
 								</resource>
 							</webResources>
+							<warName>${finalName}</warName>
 						</configuration>
 					</plugin>
 				</plugins>
@@ -65,6 +70,7 @@
 						<version>${maven.war.version}</version>
 						<configuration>
 							<packagingExcludes>draw/</packagingExcludes>
+							<warName>${finalName}</warName>
 						</configuration>
 					</plugin>
 				</plugins>
