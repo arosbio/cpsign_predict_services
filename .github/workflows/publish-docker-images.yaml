@@ -1,4 +1,4 @@
-name: Build cpsign predict service for classification
+name: Build cpsign prediction services
 
 on:
   workflow_dispatch:
@@ -25,18 +25,17 @@ permissions:
 
 jobs:
 
-  build-model-runtimes:
+  build-clf-image:
 
     runs-on: ubuntu-latest
 
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: 'classification'
+      IMAGE_NAME: 'cpsign-cp-clf'
       #DOCKER_USER: ${{ secrets.DOCKER_USER }}
       #DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      DOCKER_FILE: 'Dockerfile.classification'
+      DOCKER_FILE: 'Dockerfile'
       working-directory: .
-      WAR_VERSION: '2.0.0-SNAPSHOT'
 
     steps:
     - uses: actions/checkout@v2
@@ -60,8 +59,6 @@ jobs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        #username: ${{ github.actor }}
-        #password: ${{ secrets.GH_TOKEN }}
 
     - name: Docker meta
       id: meta_predictionservice
@@ -69,7 +66,7 @@ jobs:
       with:
         # list of Docker images to use as base name for tags
         images: |
-          ghcr.io/arosbio/classification
+          ghcr.io/arosbio/${{env.IMAGE_NAME}}
         # generate Docker tags based on the following events/attributes
         tags: |
           type=schedule
@@ -90,8 +87,5 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta_predictionservice.outputs.tags }}
         labels: ${{ steps.meta_predictionservice.outputs.labels }}
-        build-args: |
-          BASE=ghcr.io/arosbio/predictionservice:latest
-          WAR_FILE=cp_classification-${{ env.WAR_VERSION }}.war
         cache-from: type=gha
         cache-to: type=gha,mode=max
