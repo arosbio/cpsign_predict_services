@@ -13,7 +13,7 @@ RUN /bin/bash -c "cd /app && /usr/bin/mvn clean -DskipTests -DfinalName=root -P 
 # Base of the services
 ARG PORT=8080
 
-FROM jetty:11.0.14-jre17 AS base-service
+FROM jetty:11.0.18-jre17 AS base-service
 
 # TODO: sett correct user
 
