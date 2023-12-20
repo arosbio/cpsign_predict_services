@@ -3,7 +3,9 @@
 target/
 
 # Generated WAR files
-**.war
+*.war
+# CPSign model files
+*.jar
 
 # Mac files
 .DS_Store
