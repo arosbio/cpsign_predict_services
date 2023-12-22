@@ -15,6 +15,10 @@ ARG PORT=8080
 
 FROM jetty:11.0.18-jre17 AS base-service
 
+# Labels
+LABEL org.opencontainers.image.source=https://github.com/arosbio/cpsign_predict_services
+LABEL org.opencontainers.image.licenses=GPL-3.0-only
+
 # Expose the chosen port
 EXPOSE ${PORT}
 
@@ -28,6 +32,7 @@ RUN mkdir /var/lib/jetty/models/
 # ===========================================================
 FROM base-service AS cpsign-cp-clf-server
 
+LABEL org.opencontainers.image.description="REST server for conformal classification QSAR models built using CPSign"
 # Copy the cp-classification war
 COPY --from=war-builder /app/cp_classification/target/root.war /var/lib/jetty/webapps/ROOT.war
 
@@ -36,6 +41,7 @@ COPY --from=war-builder /app/cp_classification/target/root.war /var/lib/jetty/we
 # ===========================================================
 FROM base-service AS cpsign-cp-reg-server
 
+LABEL org.opencontainers.image.description="REST server for conformal regression QSAR models built using CPSign"
 # Copy the cp-regression war
 COPY --from=war-builder /app/cp_regression/target/root.war /var/lib/jetty/webapps/ROOT.war
 
@@ -44,5 +50,6 @@ COPY --from=war-builder /app/cp_regression/target/root.war /var/lib/jetty/webapp
 # ===========================================================
 FROM base-service AS cpsign-vap-clf-server
 
+LABEL org.opencontainers.image.description="REST server for Venn-ABERS probabilistic classification QSAR models built using CPSign"
 # Copy the cp-classification war
 COPY --from=war-builder /app/vap_classification/target/root.war /var/lib/jetty/webapps/ROOT.war
