@@ -15,8 +15,6 @@ ARG PORT=8080
 
 FROM jetty:11.0.18-jre17 AS base-service
 
-# TODO: sett correct user
-
 # Expose the chosen port
 EXPOSE ${PORT}
 
