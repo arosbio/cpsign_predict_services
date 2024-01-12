@@ -81,7 +81,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ${{ env.working-directory }}
-        platforms: linux/amd64,linux/arm64,windows/amd64
+        platforms: linux/amd64,linux/arm64
         file: ${{ env.DOCKER_FILE }}
         # Match the target in the multi-stage Dockerfile
         target: ${{ matrix.server-name }}
