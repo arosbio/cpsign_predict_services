@@ -80,11 +80,10 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ${{ env.working-directory }}
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64,linux/arm64,windows/amd64
         file: ${{ env.DOCKER_FILE }}
         # Match the target in the multi-stage Dockerfile
         target: ${{ matrix.server-name }}
-        #,linux/arm/v8
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta_predictionservice.outputs.tags }}
         labels: ${{ steps.meta_predictionservice.outputs.labels }}
