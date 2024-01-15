@@ -47,7 +47,19 @@ http://localhost/api/v2/modelInfo
 http://localhost/api/v2/health
 ```
 
-**Note:** The base Docker images do not include the [draw UI](#draw-gui) or [Swagger UI](#swagger-ui), they are intended to be as lightweight as possible. If the drawing UI is required to be included in each service, we refer to the [Custom build section](#custom-build)
+**Note 1:** Tag names follows the same convention as the profiles in the maven project, i.e. tags that have a suffix `-full` are built using the maven profile `full` - i.e. including the [draw UI](#draw-gui) and [Swagger UI](#swagger-ui). The tags that do not include the suffix are built using the default profile which do not include these additional resources.
+
+**Note 2:** There are alternative ways of deploying your models using these Docker images, e.g. you do not have to build an image containing the model and can instead mount a filesystem and give a URI from where to load the model. Here's an example of how to deploy a conformal classification model in your current directory:
+
+```Docker
+docker run -p 80:8080 \
+    --name clf-model \
+    --mount type=bind,source="$(pwd)",target=/app/data \
+    --env MODEL_FILE=/app/data/clf-model.jar \
+    ghcr.io/arosbio/cpsign-cp-clf-server:latest
+```
+
+Here the `--mount` argument mounts the current directory to the directory `/app/data` inside the container. In this example we assume that there is a conformal classification model called `clf-model.jar` in the current directory, which will then have the URI `/app/data/clf-model.jar` inside the container. The `--env` argument specifies an environment variable (`MODEL_FILE`) for the container which the server looks at when initiating the server (overriding the default model location).
 
 ## License
 The CPSign program is dual licensed, see more in the [CPSign base repo](https://github.com/arosbio/cpsign#license). This extension is published under the [GNU General Public License version 3 (GPLv3)](http://www.gnu.org/licenses/gpl-3.0.html).
@@ -82,8 +94,7 @@ When starting a prediction service the server will need the prediction model tha
 In case the setup fails, the web server will still be running but all calls to the REST endpoints should return a HTTP 503 error code.
 
 ### Docker build
-If you wish to deploy your services using Docker you can look at our multi-stage [Dockerfile](Dockerfile) which builds all three server types. If you simply wish to include the drawing GUI you only need to remove the `-P thin` in the maven build line in the `war-builder` step.
-Note that the base jetty image can be replaced with the `alpine` version in order to make the container slimmer, but as it is not supported by all platforms we have opted for the default jetty image for version 11.0.18 for our base docker images - but you might be able to slim down your services by testing out the alpine version. 
+If you wish to deploy your services using Docker you can look at our multi-stage [Dockerfile](Dockerfile) which builds all three server types and can be used for both building the `thin` (default) or `full` server version. Switching between these are achieved by passing the argument `--build-arg SERVICE_TYPE=full` for e.g. using the `full` profile instead. Note that the base jetty image can be replaced with the `alpine` version in order to make the container slimmer, but as it do not work for all platforms we have opted for the default jetty image for version 11.0.18 for our base docker images - but you might be able to slim down your services by testing out the alpine version. 
 
 ## Swagger UI
 The prediction services are documented by an OpenAPI definition, which is located at `<server-url>:<optional-port>/api/openapi.json` once the REST service is up and running. This is however rater hard for a human to read, why we recommend to use the [Swagger UI](https://swagger.io/docs/open-source-tools/swagger-ui/usage/installation/) for an easier way to view it. Users can either download and run the Swagger UI locally or from another web service by pointing to your server-URL, or for convenience we make it possible to add the Swagger UI static files to the WAR files themselves in which case the Swagger UI is accessible within the service from the root URL of the service, e.g. `http://localhost:8080` in case you run it locally using e.g. the `start_test_server.sh` script and use the default settings. 
