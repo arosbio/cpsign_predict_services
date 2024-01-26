@@ -83,6 +83,9 @@ jobs:
         context: ${{ env.working-directory }}
         platforms: linux/amd64,linux/arm64
         file: ${{ env.DOCKER_FILE }}
+        # Specify full/thin maven build
+        build-args: |
+          SERVICE_TYPE=${{ matrix.mvn-profile }}
         # Match the target in the multi-stage Dockerfile
         target: ${{ matrix.server-name }}
         push: ${{ github.event_name != 'pull_request' }}
