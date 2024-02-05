@@ -5,6 +5,8 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
+import com.arosbio.services.utils.CORSFilter;
+
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import jakarta.ws.rs.ApplicationPath;
 
@@ -17,6 +19,7 @@ public class RESTApplication extends ResourceConfig {
 		register(PredictApi.class);
 		register(OpenApiResource.class);
 		register(JacksonFeature.class); // Jackson-serialization
+		register(CORSFilter.class);
 	}
 	
 }
