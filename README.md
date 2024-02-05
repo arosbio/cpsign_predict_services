@@ -65,6 +65,9 @@ Here the `--mount` argument mounts the current directory to the directory `/app/
 The CPSign program is dual licensed, see more in the [CPSign base repo](https://github.com/arosbio/cpsign#license). This extension is published under the [GNU General Public License version 3 (GPLv3)](http://www.gnu.org/licenses/gpl-3.0.html).
 
 
+## Origin filter
+CORS headers are now set in the file [CORSFilter](service_utils/src/main/java/com/arosbio/services/utils/CORSFilter.java) and the `Access-Control-Allow-Origin` header can be configured at server startup by passing either an environment variable or system property `ALLOWED_ORIGIN` with the desired content. When no such information is given, the default is to set `Access-Control-Allow-Origin: *`.
+
 ## Custom build
 When custom you have custom requirements, e.g. wish to include the [draw UI](#draw-gui), here comes more details that required to build the services yourself. 
 
